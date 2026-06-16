@@ -13,50 +13,50 @@
 <link rel="icon" type="image/svg+xml" href="icon-192.svg">
 <title>Scanner v10 - Paper Trading</title>
 <style>
-:root{--bg:#fff;--surface:#f5f5f5;--border:#ddd;--text:#111;--green:#1a8a1a;--red:#cc0000;--amber:#b8860b;--blue:#0055aa;--orange:#cc5500;--mono:'Courier New',monospace}
+:root{--bg:#fff;--sf:#f5f5f5;--bd:#ddd;--tx:#111;--gn:#1a8a1a;--rd:#cc0000;--am:#b8860b;--bl:#0055aa;--or:#cc5500;--mo:'Courier New',monospace}
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+body{background:var(--bg);color:var(--tx);font-family:var(--mo);min-height:100vh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .c{max-width:100%;margin:0 auto;padding:10px}
-h1{color:var(--orange);font-size:18px;margin-bottom:3px}
-h2{color:var(--blue);font-size:13px;margin:14px 0 6px;border-bottom:1px solid #ccc;padding-bottom:3px}
+h1{color:var(--or);font-size:18px;margin-bottom:3px}
+h2{color:var(--bl);font-size:13px;margin:14px 0 6px;border-bottom:1px solid #ccc;padding-bottom:3px}
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:10px 0}
-.s{background:var(--surface);border:1px solid var(--border);padding:8px 4px;text-align:center;border-radius:4px}
-.sl{font-size:7px;color:var(--amber);text-transform:uppercase;letter-spacing:0.5px}
+.s{background:var(--sf);border:1px solid var(--bd);padding:8px 4px;text-align:center;border-radius:4px}
+.sl{font-size:7px;color:var(--am);text-transform:uppercase;letter-spacing:0.5px}
 .sv{font-size:16px;font-weight:bold;margin-top:2px;line-height:1.2}
-.sv.pos{color:var(--green)}.sv.neg{color:var(--red)}
-.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:8px 0;border:1px solid var(--border);border-radius:4px}
+.sv.pos{color:var(--gn)}.sv.neg{color:var(--rd)}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:8px 0;border:1px solid var(--bd);border-radius:4px}
 table{width:100%;border-collapse:collapse;font-size:9px;min-width:480px}
 th,td{padding:5px 4px;text-align:left;border-bottom:1px solid #eee;white-space:nowrap}
-th{background:var(--surface);color:var(--amber);text-transform:uppercase;font-size:7px;position:sticky;top:0}
-.buy{color:var(--green)}.sell{color:var(--red)}.hold{color:var(--amber)}.neu{color:#666}
+th{background:var(--sf);color:var(--am);text-transform:uppercase;font-size:7px;position:sticky;top:0}
+.buy{color:var(--gn)}.sell{color:var(--rd)}.hold{color:var(--am)}.neu{color:#666}
 .br{display:flex;gap:5px;margin:8px 0}
-.btn{background:var(--orange);color:#fff;border:none;padding:10px 12px;cursor:pointer;font-weight:bold;font-size:11px;text-transform:uppercase;border-radius:4px;touch-action:manipulation;min-height:40px;flex:1}
+.btn{background:var(--or);color:#fff;border:none;padding:10px 12px;cursor:pointer;font-weight:bold;font-size:11px;text-transform:uppercase;border-radius:4px;touch-action:manipulation;min-height:40px;flex:1}
 .btn:active{opacity:0.7;transform:scale(0.98)}
-.btn-g{background:var(--green)}.btn-r{background:#666}
-.cfg{background:var(--surface);border:1px solid var(--border);padding:8px;margin:8px 0;font-size:9px;border-radius:4px}
+.btn-g{background:var(--gn)}.btn-r{background:#666}
+.cfg{background:var(--sf);border:1px solid var(--bd);padding:8px;margin:8px 0;font-size:9px;border-radius:4px}
 .cr{display:flex;gap:4px;margin:2px 0;flex-wrap:wrap}
-.cl{color:var(--amber);min-width:80px;font-size:8px}
+.cl{color:var(--am);min-width:80px;font-size:8px}
 .sb{display:inline-block;padding:1px 4px;border-radius:2px;font-size:8px;font-weight:bold;color:#fff}
-.sh{background:var(--green)}.sm{background:var(--amber)}.sl2{background:var(--red)}
-.pf{background:var(--surface);border:1px solid var(--green);padding:8px;margin:10px 0;border-radius:4px}
+.sh{background:var(--gn)}.sm{background:var(--am)}.sl2{background:var(--rd)}
+.pf{background:var(--sf);border:1px solid var(--gn);padding:8px;margin:10px 0;border-radius:4px}
 .pl{display:flex;flex-direction:column;gap:5px}
-.pc{background:#fff;border:1px solid var(--border);padding:6px;border-radius:4px;font-size:9px}
-.pn{font-weight:bold;color:var(--blue);margin-bottom:3px}
+.pc{background:#fff;border:1px solid var(--bd);padding:6px;border-radius:4px;font-size:9px}
+.pn{font-weight:bold;color:var(--bl);margin-bottom:3px}
 .pd{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
 .pd .l{font-size:7px;color:#888;text-transform:uppercase}.pd .v{font-weight:bold}
-.lg{background:var(--surface);padding:6px;max-height:150px;overflow-y:auto;font-size:8px;border-radius:4px;-webkit-overflow-scrolling:touch}
+.lg{background:var(--sf);padding:6px;max-height:150px;overflow-y:auto;font-size:8px;border-radius:4px;-webkit-overflow-scrolling:touch}
 .le{padding:2px 0;border-bottom:1px solid #eee}
-.lb{color:var(--green)}.ls{color:var(--red)}.li{color:var(--amber)}
-.cw{background:var(--surface);padding:6px;border-radius:4px;height:120px;position:relative}
-.spinner{display:inline-block;width:10px;height:10px;border:2px solid var(--amber);border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;margin-right:4px;vertical-align:middle}
+.lb{color:var(--gn)}.ls{color:var(--rd)}.li{color:var(--am)}
+.cw{background:var(--sf);padding:6px;border-radius:4px;height:120px;position:relative}
+.spinner{display:inline-block;width:10px;height:10px;border:2px solid var(--am);border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;margin-right:4px;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 <div class="c">
 <h1>Scanner v10</h1>
-<p style="color:var(--amber);font-size:8px">V9E_DEFAULT + ALL indicators + MONTHLY | Rs 10,00,000 | 139 NSE indices</p>
+<p style="color:var(--am);font-size:8px">V9E_DEFAULT + ALL indicators + MONTHLY | Rs 10,00,000 | 139 NSE indices</p>
 
 <div class="stats">
   <div class="s"><div class="sl">Portfolio</div><div class="sv" id="pv">Rs 10,00,000</div></div>
@@ -104,9 +104,33 @@ th{background:var(--surface);color:var(--amber);text-transform:uppercase;font-si
 var CORS=['https://cors-proxy-xi-ten.vercel.app/api/proxy?url=','https://corsproxy.io/?','https://api.allorigins.win/raw?url='];
 var NSE_API='https://www.nseindia.com/api/allIndices';
 var CSV_URL='https://archives.nseindia.com/content/indices/ind_close_all_';
-var BATCH=5, DELAY=400, FETCH_DAYS=100;
+var YAHOO_WK='https://query1.finance.yahoo.com/v8/finance/chart/SYM?interval=1wk&range=2y';
+var YAHOO_DY='https://query1.finance.yahoo.com/v8/finance/chart/SYM?interval=1d&range=6mo';
+var BATCH=5,DELAY=400,FETCH_DAYS=100;
 var pf={cash:1000000,pos:{},trades:[],eq:[{d:new Date().toISOString(),v:1000000}]};
-var scanR=[], allIdx=[], histMap={};
+var scanR=[];
+
+var YAHOO={};
+var NSE_LIST=[
+  {n:'NIFTY 50',y:'^NSEI'},{n:'NIFTY NEXT 50',y:'^NIFTYNXT50'},{n:'NIFTY BANK',y:'^NSEBANK'},
+  {n:'NIFTY IT',y:'^CNXIT'},{n:'NIFTY AUTO',y:'^CNXAUTO'},{n:'NIFTY PHARMA',y:'^CNXPHARMA'},
+  {n:'NIFTY FMCG',y:'^CNXFMCG'},{n:'NIFTY METAL',y:'^CNXMETAL'},{n:'NIFTY REALTY',y:'^CNXREALTY'},
+  {n:'NIFTY ENERGY',y:'^CNXENERGY'},{n:'NIFTY PSU BANK',y:'^CNXPSUBNK'},{n:'NIFTY MNC',y:'^CNXMNC'},
+  {n:'NIFTY PVT BANK',y:'^CNXPVTBNK'},{n:'NIFTY FINANCIAL SERVICES',y:'^CNXFINANCE'},
+  {n:'NIFTY MEDIA',y:'^CNXMEDIA'},{n:'NIFTY INFRASTRUCTURE',y:'^CNXINFRA'},
+  {n:'NIFTY COMMODITIES',y:'^CNXCOMMODITIES'},{n:'NIFTY CPSE',y:'^CNXCPSE'},
+  {n:'NIFTY OIL AND GAS',y:'^CNXOILGAS'},{n:'NIFTY HEALTHCARE INDEX',y:'^NIFTYHC'},
+  {n:'INDIA VIX',y:'^INDIAVIX'},{n:'NIFTY 100',y:'^CNX100'},{n:'NIFTY 200',y:'^CNX200'},
+  {n:'NIFTY 500',y:'^CNX500'},{n:'NIFTY MIDCAP 50',y:'^CNXMIDCAP50'},
+  {n:'NIFTY MIDCAP 100',y:'^NSMIDCP100'},{n:'NIFTY MIDCAP 150',y:'^CNXMIDCAP150'},
+  {n:'NIFTY SMALLCAP 50',y:'^CNXSC50'},{n:'NIFTY SMALLCAP 100',y:'^CNXSC'},
+  {n:'NIFTY SMALLCAP 250',y:'^CNXSC250'},{n:'NIFTY LARGEMIDCAP 250',y:'^CNXLARGEMID250'},
+  {n:'NIFTY MID SELECT',y:'^NIFTYMIDSEL'},{n:'NIFTY Svc Ind',y:'^CNXSERVICE'},
+  {n:'NIFTY ALPHA 50',y:'^CNXALPHA50'},{n:'NIFTY CONSUMER DURABLES',y:'^CNXCONSUMER'},
+  {n:'NIFTY CONSUMPTION',y:'^CNXCONSUMPTION'},{n:'NIFTY PSE',y:'^CNXPSE'},
+  {n:'NIFTY TOTAL MARKET',y:'^NIFTYTOTALMKT'},{n:'NIFTY MICROCAP 250',y:'^NIFTYMICROCAP250'}
+];
+NSE_LIST.forEach(function(x){YAHOO[x.n.toUpperCase()]=x.y});
 
 function $(id){return document.getElementById(id)}
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
@@ -172,8 +196,18 @@ function computeRow(closes,name){
   return{name:name,price:Math.round(price*100)/100,r4:Math.round(dR*10)/10,r8:Math.round(r8v*10)/10,r14:Math.round(r14v*10)/10,macd:Math.round(macdH*100)/100,regime:regime,score:Math.round(score),wRsi:Math.round(wR*10)/10};
 }
 
+async function fetchYahooCloses(sym){
+  try{
+    var url=YAHOO_DY.replace('SYM',sym);
+    var r=await fetchProxy(url,{signal:AbortSignal.timeout(15000)});
+    var j=await r.json();
+    var c=(j.chart&&j.chart.result&&j.chart.result[0]&&j.chart.result[0].indicators&&j.chart.result[0].indicators.quote&&j.chart.result[0].indicators.quote[0]&&j.chart.result[0].indicators.quote[0].close)||[];
+    return c.filter(function(x){return x!=null});
+  }catch(e){return[]}
+}
+
 async function runScan(){
-  $('st').innerHTML='<span class="spinner"></span> Fetching NSE...';
+  $('st').innerHTML='<span class="spinner"></span> Fetching NSE live prices...';
   addLog('Starting scan...','i');
   scanR=[];
 
@@ -182,7 +216,7 @@ async function runScan(){
   try{
     var r=await fetchProxy(NSE_API,{signal:AbortSignal.timeout(20000)});
     var data=await r.json();
-    allIdx=data.data||[];
+    var allIdx=data.data||[];
     for(var i=0;i<allIdx.length;i++){
       var idx=allIdx[i];
       var nm=(idx.index||'').toUpperCase();
@@ -195,22 +229,22 @@ async function runScan(){
     return;
   }
 
-  // Step 2: Fetch CSV batches for historical
+  // Step 2: Try NSE CSV first, then Yahoo fallback
   var dailyMap={};
+  var csvOk=false;
   var days=genDays(FETCH_DAYS);
-  var errors=0;
-  $('st').innerHTML='<span class="spinner"></span> Fetching historical 0/'+days.length+'...';
+  $('st').innerHTML='<span class="spinner"></span> Trying NSE CSV archives...';
 
   for(var i=0;i<days.length;i+=BATCH){
     var batch=days.slice(i,i+BATCH);
     var promises=batch.map(function(td){
       var ds=fmtDDMMYYYY(td);
-      return fetchProxy(CSV_URL+ds+'.csv',{signal:AbortSignal.timeout(10000)})
-        .then(function(r){if(!r.ok){errors++;return''}return r.text()})
+      return fetchProxy(CSV_URL+ds+'.csv',{signal:AbortSignal.timeout(8000)})
+        .then(function(r){if(!r.ok)return'';return r.text()})
         .then(function(text){
-          if(!text)return;
-          var lines=text.trim().split('\n').filter(function(l){return l.trim()});
-          if(lines.length<2)return;
+          if(!text||text.indexOf('Symbol')<0)return;
+          csvOk=true;
+          var lines=text.trim().split('\n');
           for(var j=1;j<lines.length;j++){
             var v=lines[j].split(',');
             var nm=(v[0]||'').trim();
@@ -220,21 +254,45 @@ async function runScan(){
               dailyMap[nm.toLowerCase()].push(close);
             }
           }
-        }).catch(function(){errors++});
+        }).catch(function(){});
     });
     await Promise.all(promises);
-    $('st').innerHTML='<span class="spinner"></span> Historical: '+Math.min(i+BATCH,days.length)+'/'+days.length+'...';
+    if(i%20===0)$('st').innerHTML='<span class="spinner"></span> CSV: '+Math.min(i+BATCH,days.length)+'/'+days.length+'...';
     await sleep(DELAY);
   }
 
-  // Step 3: Compute indicators for each index
+  // Step 3: Yahoo fallback for indices without CSV data
+  if(!csvOk||Object.keys(dailyMap).length===0){
+    addLog('CSV failed, using Yahoo Finance...','i');
+    var yahooCount=0;
+    for(var name in YAHOO){
+      if(yahooCount%5===0)$('st').innerHTML='<span class="spinner"></span> Yahoo: '+yahooCount+'/'+Object.keys(YAHOO).length+'...';
+      var sym=YAHOO[name];
+      var closes=await fetchYahooCloses(sym);
+      if(closes.length>=20){
+        dailyMap[name.toLowerCase()]=closes;
+        yahooCount++;
+      }
+      await sleep(300);
+    }
+    addLog('Yahoo: '+yahooCount+' indices','i');
+  }
+
+  // Step 4: Compute indicators
   var count=0;
   for(var key in priceMap){
     var pm=priceMap[key];
     if(!pm.price||pm.price<=0)continue;
     var closes=dailyMap[key]||[];
-    // Append today's live price
-    if(pm.price>0)closes.push(pm.price);
+    // Try alternate key matching
+    if(closes.length<5){
+      for(var hk in dailyMap){
+        if(nrm(hk)===key||key.indexOf(nrm(hk))>=0||nrm(hk).indexOf(key)>=0){
+          closes=dailyMap[hk];break;
+        }
+      }
+    }
+    if(pm.price>0)closes=closes.concat([pm.price]);
     if(closes.length<20)continue;
     var row=computeRow(closes,pm.name||key);
     if(!row)continue;
@@ -248,7 +306,7 @@ async function runScan(){
   processScan(scanR);
   $('st').textContent=count+' indices scanned';
   $('ts').textContent=new Date().toLocaleString();
-  addLog('Done: '+count+' indices, '+errors+' errors','i');
+  addLog('Done: '+count+' indices','i');
 }
 
 function render(results){
@@ -259,38 +317,22 @@ function render(results){
     var act=r.regime==='A'&&r.score>=150?(top3.indexOf(r.name)>=0?'BUY':'WATCH'):'HOLD';
     var ac=act==='BUY'?'buy':act==='WATCH'?'hold':'neu';
     var held=pf.pos[r.name];
-    return'<tr style="'+(held?'background:#f0fff0':'')+'">'+(i+1)+'</td><td style="font-weight:bold">'+r.name.replace('NIFTY ','N')+'</td><td>'+fmt(r.price)+'</td><td class="'+(r.change>=0?'buy':'sell')+'">'+(r.change>=0?'+':'')+r.change.toFixed(1)+'%</td><td>'+r.r4+'</td><td>'+r.r8+'</td><td class="'+(r.macd>0?'buy':'sell')+'">'+(r.macd>0?'+':'')+r.macd+'</td><td class="'+rc+'">'+r.regime+'</td><td><span class="sb '+sc+'">'+r.score+'</span></td><td class="'+ac+'">'+act+'</td></tr>';
+    return'<tr style="'+(held?'background:#f0fff0':'')+'"><td>'+(i+1)+'</td><td style="font-weight:bold">'+r.name.replace('NIFTY ','N')+'</td><td>'+fmt(r.price)+'</td><td class="'+(r.change>=0?'buy':'sell')+'">'+(r.change>=0?'+':'')+r.change.toFixed(1)+'%</td><td>'+r.r4+'</td><td>'+r.r8+'</td><td class="'+(r.macd>0?'buy':'sell')+'">'+(r.macd>0?'+':'')+r.macd+'</td><td class="'+rc+'">'+r.regime+'</td><td><span class="sb '+sc+'">'+r.score+'</span></td><td class="'+ac+'">'+act+'</td></tr>';
   }).join('');
 }
 
 function processScan(results){
   var top3=results.filter(function(r){return r.regime==='A'&&r.score>=150}).slice(0,3);
-  var newNames={};
-  top3.forEach(function(r){newNames[r.name]=true});
+  var newNames={};top3.forEach(function(r){newNames[r.name]=true});
   Object.keys(pf.pos).forEach(function(name){
-    if(!newNames[name]){
-      var p=pf.pos[name];
-      pf.cash+=p.shares*p.cur;
-      pf.trades.push({t:'SELL',n:name,p:p.cur,s:p.shares,d:new Date().toISOString()});
-      addLog('SELL '+name+' @ '+fmt(p.cur),'s');
-      delete pf.pos[name];
-    }
+    if(!newNames[name]){var p=pf.pos[name];pf.cash+=p.shares*p.cur;pf.trades.push({t:'SELL',n:name,p:p.cur,s:p.shares,d:new Date().toISOString()});addLog('SELL '+name+' @ '+fmt(p.cur),'s');delete pf.pos[name]}
   });
   top3.forEach(function(r){
-    if(!pf.pos[r.name]){
-      var alloc=pf.cash/(top3.length-Object.keys(pf.pos).length);
-      var shares=Math.floor(alloc/r.price);
-      if(shares>0){
-        pf.cash-=shares*r.price;
-        pf.pos[r.name]={shares:shares,avg:r.price,cur:r.price};
-        pf.trades.push({t:'BUY',n:r.name,p:r.price,s:shares,d:new Date().toISOString()});
-        addLog('BUY '+r.name+' x'+shares+' @ '+fmt(r.price),'b');
-      }
-    }else{pf.pos[r.name].cur=r.price}
+    if(!pf.pos[r.name]){var alloc=pf.cash/(top3.length-Object.keys(pf.pos).length);var shares=Math.floor(alloc/r.price);if(shares>0){pf.cash-=shares*r.price;pf.pos[r.name]={shares:shares,avg:r.price,cur:r.price};pf.trades.push({t:'BUY',n:r.name,p:r.price,s:shares,d:new Date().toISOString()});addLog('BUY '+r.name+' x'+shares+' @ '+fmt(r.price),'b')}}
+    else{pf.pos[r.name].cur=r.price}
   });
   var tv=pf.cash;Object.values(pf.pos).forEach(function(p){tv+=p.shares*p.cur});
-  pf.eq.push({d:new Date().toISOString(),v:tv});
-  if(pf.eq.length>365)pf.eq.shift();
+  pf.eq.push({d:new Date().toISOString(),v:tv});if(pf.eq.length>365)pf.eq.shift();
   savePf();updateUI();
 }
 
@@ -314,25 +356,18 @@ function updateUI(){
 function addLog(m,t){var l=$('tl'),e=document.createElement('div');e.className='le l'+t;e.textContent=new Date().toLocaleTimeString()+' - '+m;l.insertBefore(e,l.firstChild);if(l.children.length>50)l.removeChild(l.lastChild)}
 function resetPf(){if(!confirm('Reset?'))return;pf={cash:1000000,pos:{},trades:[],eq:[{d:new Date().toISOString(),v:1000000}]};savePf();updateUI();addLog('Reset','i')}
 function drawChart(){
-  var c=$('ec'),ct=c.parentElement;
-  c.width=ct.clientWidth-12;c.height=ct.clientHeight-12;
-  var ctx=c.getContext('2d'),w=c.width,h=c.height;
-  ctx.clearRect(0,0,w,h);
+  var c=$('ec'),ct=c.parentElement;c.width=ct.clientWidth-12;c.height=ct.clientHeight-12;
+  var ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
   if(pf.eq.length<2){ctx.fillStyle='#666';ctx.font='9px Courier New';ctx.textAlign='center';ctx.fillText('After trades',w/2,h/2);return}
   var vals=pf.eq.map(function(e){return e.v}),mn=Math.min.apply(null,vals)*0.99,mx=Math.max.apply(null,vals)*1.01,rng=mx-mn;
   ctx.strokeStyle='#1a8a1a';ctx.lineWidth=1.5;ctx.beginPath();
-  pf.eq.forEach(function(e,i){var x=(i/(pf.eq.length-1))*w,y=h-((e.v-mn)/rng)*h;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
-  ctx.stroke();
-  ctx.strokeStyle='#b8860b';ctx.lineWidth=1;ctx.setLineDash([3,3]);
-  var by=h-((1000000-mn)/rng)*h;ctx.beginPath();ctx.moveTo(0,by);ctx.lineTo(w,by);ctx.stroke();ctx.setLineDash([]);
+  pf.eq.forEach(function(e,i){var x=(i/(pf.eq.length-1))*w,y=h-((e.v-mn)/rng)*h;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});ctx.stroke();
+  ctx.strokeStyle='#b8860b';ctx.lineWidth=1;ctx.setLineDash([3,3]);var by=h-((1000000-mn)/rng)*h;ctx.beginPath();ctx.moveTo(0,by);ctx.lineTo(w,by);ctx.stroke();ctx.setLineDash([]);
   ctx.fillStyle='#666';ctx.font='7px Courier New';ctx.textAlign='left';ctx.fillText(fmt(mx),2,8);ctx.fillText(fmt(mn),2,h-2);
 }
-loadData();drawChart();
-window.addEventListener('resize',drawChart);
-window.addEventListener('orientationchange',function(){setTimeout(drawChart,200)});
+loadData();drawChart();window.addEventListener('resize',drawChart);window.addEventListener('orientationchange',function(){setTimeout(drawChart,200)});
 setInterval(function(){Object.values(pf.pos).forEach(function(p){p.cur=p.avg*(1+(Math.random()-0.48)*0.02)});var tv=pf.cash;Object.values(pf.pos).forEach(function(p){tv+=p.shares*p.cur});$('pv').textContent=fmt(tv);updateUI()},30000);
 if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js').catch(function(){});
-var dP;window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dP=e});
 </script>
 </body>
 </html>
