@@ -142,6 +142,9 @@ function fmt(n){return'Rs '+n.toLocaleString('en-IN',{maximumFractionDigits:0})}
 function fmtP(n){return(n>=0?'+':'')+n.toFixed(2)+'%'}
 
 async function fetchProxy(url,opts){
+  // Try direct first (works if browser has NSE cookies)
+  try{var d=await fetch(url,opts||{});if(d.ok)return d}catch(e){}
+  // Then try CORS proxies
   for(var i=0;i<CORS.length;i++){
     try{var r=await fetch(CORS[i]+encodeURIComponent(url),opts||{});if(r.ok)return r}catch(e){}
   }
@@ -211,22 +214,55 @@ async function runScan(){
   addLog('Starting scan...','i');
   scanR=[];
 
+  // Check localStorage cache first (1 hour validity)
+  var cacheKey='sc_v10_cache';
+  var cached=null;
+  try{var raw=localStorage.getItem(cacheKey);if(raw){cached=JSON.parse(raw);if(Date.now()-cached.ts>3600000)cached=null}}catch(e){cached=null}
+
   // Step 1: Fetch live prices from NSE API
   var priceMap={};
-  try{
-    var r=await fetchProxy(NSE_API,{signal:AbortSignal.timeout(20000)});
-    var data=await r.json();
-    var allIdx=data.data||[];
-    for(var i=0;i<allIdx.length;i++){
-      var idx=allIdx[i];
-      var nm=(idx.index||'').toUpperCase();
-      priceMap[nrm(nm)]={price:idx.last||0,change:idx.percentChange||idx.pChange||0,name:idx.index||''};
+  var nseOk=false;
+  if(cached&&cached.priceMap&&Object.keys(cached.priceMap).length>10){
+    priceMap=cached.priceMap;
+    nseOk=true;
+    addLog('Loaded '+Object.keys(priceMap).length+' prices from cache','i');
+    $('st').textContent='Cache: '+Object.keys(priceMap).length+' indices';
+  }else{
+    try{
+      var r=await fetchProxy(NSE_API,{signal:AbortSignal.timeout(20000)});
+      var text=await r.text();
+      if(text&&text.indexOf('"data"')>0){
+        var data=JSON.parse(text);
+        var allIdx=data.data||[];
+        for(var i=0;i<allIdx.length;i++){
+          var idx=allIdx[i];
+          var nm=(idx.index||'').toUpperCase();
+          priceMap[nrm(nm)]={price:idx.last||0,change:idx.percentChange||idx.pChange||0,name:idx.index||''};
+        }
+        nseOk=true;
+        $('st').textContent='NSE: '+allIdx.length+' indices live';
+      }
+    }catch(e){}
+  }
+
+  // Yahoo fallback for live prices
+  if(!nseOk||Object.keys(priceMap).length===0){
+    addLog('NSE API failed, using Yahoo for live prices...','i');
+    $('st').innerHTML='<span class="spinner"></span> Yahoo live prices...';
+    for(var name in YAHOO){
+      try{
+        var sym=YAHOO[name];
+        var url=YAHOO_DY.replace('SYM',sym);
+        var yr=await fetchProxy(url,{signal:AbortSignal.timeout(10000)});
+        var yj=await yr.json();
+        var meta=yj.chart&&yj.chart.result&&yj.chart.result[0]&&yj.chart.result[0].meta;
+        if(meta&&meta.regularMarketPrice){
+          priceMap[nrm(name)]={price:meta.regularMarketPrice,change:meta.regularMarketChangePercent||0,name:name};
+        }
+      }catch(e){}
+      await sleep(200);
     }
-    $('st').textContent='NSE: '+allIdx.length+' indices live';
-  }catch(e){
-    $('st').textContent='NSE API failed: '+e.message;
-    addLog('NSE API failed: '+e.message,'s');
-    return;
+    $('st').textContent='Yahoo: '+Object.keys(priceMap).length+' prices';
   }
 
   // Step 2: Try NSE CSV first, then Yahoo fallback
@@ -308,6 +344,9 @@ async function runScan(){
   $('st').textContent=count+' indices scanned';
   $('ts').textContent=new Date().toLocaleString();
   addLog('Done: '+count+' indices','i');
+
+  // Cache results for next load
+  try{localStorage.setItem(cacheKey,JSON.stringify({ts:Date.now(),priceMap:priceMap,results:scanR}))}catch(e){}
 }
 
 function render(results){
@@ -366,7 +405,13 @@ function drawChart(){
   ctx.strokeStyle='#b8860b';ctx.lineWidth=1;ctx.setLineDash([3,3]);var by=h-((1000000-mn)/rng)*h;ctx.beginPath();ctx.moveTo(0,by);ctx.lineTo(w,by);ctx.stroke();ctx.setLineDash([]);
   ctx.fillStyle='#666';ctx.font='7px Courier New';ctx.textAlign='left';ctx.fillText(fmt(mx),2,8);ctx.fillText(fmt(mn),2,h-2);
 }
-loadData();drawChart();window.addEventListener('resize',drawChart);window.addEventListener('orientationchange',function(){setTimeout(drawChart,200)});
+loadData();drawChart();
+// Restore cached results on load
+try{
+  var raw=localStorage.getItem('sc_v10_cache');
+  if(raw){var snap=JSON.parse(raw);if(snap.results&&snap.results.length){scanR=snap.results;render(scanR);$('st').textContent=snap.results.length+' indices from cache. Tap SCAN to refresh.';$('ts').textContent=snap.ts?new Date(snap.ts).toLocaleString():''}}
+}catch(e){}
+window.addEventListener('resize',drawChart);window.addEventListener('orientationchange',function(){setTimeout(drawChart,200)});
 setInterval(function(){Object.values(pf.pos).forEach(function(p){p.cur=p.avg*(1+(Math.random()-0.48)*0.02)});var tv=pf.cash;Object.values(pf.pos).forEach(function(p){tv+=p.shares*p.cur});$('pv').textContent=fmt(tv);updateUI()},30000);
 if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js').catch(function(){});
 </script>
