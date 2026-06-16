@@ -250,8 +250,9 @@ async function runScan(){
             var nm=(v[0]||'').trim();
             var close=parseFloat(v[5]);
             if(nm&&!isNaN(close)){
-              if(!dailyMap[nm.toLowerCase()])dailyMap[nm.toLowerCase()]=[];
-              dailyMap[nm.toLowerCase()].push(close);
+              var key=nrm(nm);
+              if(!dailyMap[key])dailyMap[key]=[];
+              dailyMap[key].push(close);
             }
           }
         }).catch(function(){});
@@ -270,7 +271,7 @@ async function runScan(){
       var sym=YAHOO[name];
       var closes=await fetchYahooCloses(sym);
       if(closes.length>=20){
-        dailyMap[name.toLowerCase()]=closes;
+        dailyMap[nrm(name)]=closes;
         yahooCount++;
       }
       await sleep(300);
