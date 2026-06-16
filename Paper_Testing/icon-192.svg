@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <rect width="192" height="192" rx="24" fill="#ffffff"/>
+  <rect x="16" y="16" width="160" height="160" rx="16" fill="#f5f5f5" stroke="#ccc" stroke-width="3"/>
+  <text x="96" y="70" text-anchor="middle" font-family="monospace" font-size="28" font-weight="bold" fill="#cc5500">v10</text>
+  <text x="96" y="100" text-anchor="middle" font-family="monospace" font-size="14" fill="#0055aa">SCANNER</text>
+  <line x1="36" y1="115" x2="156" y2="115" stroke="#ccc" stroke-width="1"/>
+  <rect x="36" y="125" width="40" height="8" rx="2" fill="#1a8a1a"/>
+  <rect x="36" y="140" width="28" height="8" rx="2" fill="#cc0000"/>
+  <rect x="36" y="155" width="52" height="8" rx="2" fill="#b8860b"/>
+  <circle cx="145" cy="135" r="12" fill="none" stroke="#1a8a1a" stroke-width="2"/>
+  <path d="M145 128 L145 135 L150 138" stroke="#1a8a1a" stroke-width="2" fill="none"/>
+</svg>

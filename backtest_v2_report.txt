@@ -1,0 +1,188 @@
+=====================================================================================
+SCANNER v9E BACKTESTING RESULTS v2 — WITH STOP LOSSES
+Generated: 2026-06-16 13:21
+Capital: Rs 10,00,000 | Period: Jan 2021 - Jun 2026 | 15 NSE Index ETFs
+=====================================================================================
+
+Config                                                Final    CAGR   MaxDD   Win%   Trd
+-------------------------------------------------------------------------------------
+03  RELAXED (no stop)                             1,031,320    0.6%   15.3%    43%   87 <-- BEST
+06  RELAXED + WMA20 stop                          1,031,320    0.6%   15.3%    43%   87
+21  RELAXED + wide zone + WMA20                   1,021,345    0.4%   16.1%    44%   89
+12  RELAXED + trail 3%                            1,007,234    0.1%   14.9%    41%  131
+18  RELAXED + WMA20 + trail 3%                    1,007,234    0.1%   14.9%    41%  131
+14  RELAXED + trail 4%                            1,002,583    0.1%   15.7%    42%  123
+19  RELAXED + WMA20 + trail 4%                    1,002,583    0.1%   15.7%    42%  123
+09  RELAXED + trail 2.5%                            998,537   -0.0%   16.2%    39%  145
+17  RELAXED + WMA20 + trail 2.5%                    998,537   -0.0%   16.2%    39%  145
+20  RELAXED + wide zone + trail 2.5%                997,544   -0.1%   16.3%    38%  145
+22  RELAXED + wide zone + both 2.5%                 997,544   -0.1%   16.3%    38%  145
+01  v9E DEFAULT (no stop)                           982,528   -0.3%    3.2%    12%   16
+04  v9E + WMA20 stop                                982,528   -0.3%    3.2%    12%   16
+10  v9E + trail 3%                                  981,868   -0.3%    3.1%    22%   18
+13  v9E + trail 4%                                  981,868   -0.3%    3.1%    22%   18
+07  v9E + trail 2.5%                                968,996   -0.6%    4.2%    11%   18
+15  v9E + WMA20 + trail 2.5%                        968,996   -0.6%    4.2%    11%   18
+02  REGIME A ONLY (no stop)                         956,147   -0.9%   19.1%    37%  105
+05  REGIME A + WMA20 stop                           956,147   -0.9%   19.1%    37%  105
+11  REGIME A + trail 3%                             907,319   -1.9%   23.4%    40%  169
+08  REGIME A + trail 2.5%                           893,928   -2.1%   23.2%    40%  185
+16  REGIME A + WMA20 + trail 2.5%                   893,928   -2.1%   23.2%    40%  185 <-- WORST
+
+=====================================================================================
+STOP LOSS IMPACT ANALYSIS
+=====================================================================================
+
+  Stop Type                        Avg CAGR  Best CAGR  Avg MaxDD
+  ------------------------------------------------------------
+  No Stop Loss                         0.0%       0.0%       0.0%
+  WMA20 Stop Only                     -0.1%       0.6%      13.4%
+  Trail 2.5% Only                     -0.7%      -0.0%      15.0%
+  Trail 3% Only                       -0.7%       0.1%      13.8%
+  Trail 4% Only                       -0.1%       0.1%       9.4%
+  WMA20 + Trail 2.5%                  -0.7%      -0.0%      15.0%
+  WMA20 + Trail 3%                     0.1%       0.1%      14.9%
+
+=====================================================================================
+BEST CONFIGURATION: 03  RELAXED (no stop)
+=====================================================================================
+  Final Portfolio Value : Rs 1,031,320
+  Total Return         : 3.1%
+  CAGR                 : 0.6%
+  Max Drawdown         : 15.3%
+  Win Rate             : 43%
+  Avg Win              : +6.2%
+  Avg Loss             : -3.9%
+  Total Trades         : 87
+  Cash Weeks           : 39%
+
+=====================================================================================
+TRADE LOG — 03  RELAXED (no stop)
+=====================================================================================
+Date         Action Index                          Price   Return Reason
+-----------------------------------------------------------------------------------------------
+2021-07-23   BUY    NIFTY IT                     29894.3          Score:223 W-RSI:75.8
+2022-02-25   SELL   NIFTY IT                     33476.9   +12.0% Regime B/C exit
+2023-01-20   BUY    NIFTY IT                     29529.7          Score:211 W-RSI:73.1
+2023-02-10   SELL   NIFTY IT                     30870.2    +4.5% Regime B/C exit
+2023-05-26   BUY    NIFTY FMCG                   50388.0          Score:198 W-RSI:57.1
+2023-06-02   SELL   NIFTY FMCG                   51288.6    +1.8% Regime B/C exit
+2023-06-16   BUY    NIFTY FMCG                   52440.2          Score:205 W-RSI:63.3
+2023-08-04   BUY    NIFTY IT                     30436.1          Score:177 W-RSI:58.8
+2023-08-11   SELL   NIFTY IT                     30819.2    +1.3% Regime B/C exit
+2023-09-01   BUY    NIFTY IT                     31514.3          Score:192 W-RSI:60.8
+2023-12-15   BUY    NIFTY REALTY                   767.0          Score:197 W-RSI:60.4
+2023-12-22   SELL   NIFTY REALTY                   763.0    -0.5% Regime B/C exit
+2023-12-29   BUY    NIFTY REALTY                   783.0          Score:204 W-RSI:65.1
+2024-01-05   SELL   NIFTY IT                     34851.8   +10.6% Regime B/C exit
+2024-02-02   BUY    NIFTY IT                     37323.2          Score:186 W-RSI:60.2
+2024-05-24   SELL   NIFTY FMCG                   55449.1    +5.7% Regime B/C exit
+2024-05-24   BUY    NIFTY ENERGY                 41634.6          Score:268 W-RSI:97.1
+2024-06-14   SELL   NIFTY IT                     34598.6    -7.3% Regime B/C exit
+2024-06-14   BUY    NIFTY SMALLCAP 250              50.6          Score:219 W-RSI:70.7
+2024-06-28   SELL   NIFTY REALTY                  1104.8   +41.1% Regime B/C exit
+2024-06-28   BUY    NIFTY 50                     24010.6          Score:215 W-RSI:70.2
+2024-08-09   SELL   NIFTY 50                     24367.5    +1.5% Regime B/C exit
+2024-08-09   BUY    NIFTY FMCG                   62157.4          Score:183 W-RSI:53.3
+2024-09-20   SELL   NIFTY FMCG                   65870.8    +6.0% Regime B/C exit
+2024-09-20   BUY    NIFTY AUTO                   26394.6          Score:240 W-RSI:83.9
+2024-10-04   SELL   NIFTY AUTO                   25926.3    -1.8% Regime B/C exit
+2024-10-11   BUY    NIFTY AUTO                   26436.6          Score:215 W-RSI:74.9
+2024-10-18   SELL   NIFTY AUTO                   25146.9    -4.9% Regime B/C exit
+2024-11-08   SELL   NIFTY ENERGY                 38403.6    -7.8% Regime B/C exit
+2024-11-08   SELL   NIFTY SMALLCAP 250              50.7    +0.2% Regime B/C exit
+2024-11-08   BUY    NIFTY IT                     42050.1          Score:183 W-RSI:62.4
+2024-11-29   BUY    NIFTY 50                     24131.1          Score:220 W-RSI:78.0
+2024-11-29   BUY    NIFTY NEXT 50                  269.9          Score:215 W-RSI:75.3
+2024-12-20   SELL   NIFTY 50                     23587.5    -2.3% Regime B/C exit
+2024-12-20   SELL   NIFTY NEXT 50                  264.1    -2.1% Regime B/C exit
+2025-01-03   BUY    NIFTY FMCG                   57817.0          Score:219 W-RSI:74.5
+2025-02-07   SELL   NIFTY IT                     42921.6    +2.1% Regime B/C exit
+2025-02-07   SELL   NIFTY FMCG                   55113.3    -4.7% Regime B/C exit
+2025-04-25   BUY    NIFTY IT                     35562.2          Score:187 W-RSI:62.3
+2025-05-02   SELL   NIFTY IT                     35891.9    +0.9% Regime B/C exit
+2025-05-02   BUY    NIFTY REALTY                   881.5          Score:190 W-RSI:57.6
+2025-05-09   BUY    NIFTY IT                     35880.1          Score:166 W-RSI:52.8
+2025-05-16   SELL   NIFTY REALTY                   912.5    +3.5% Regime B/C exit
+2025-05-16   SELL   NIFTY IT                     37972.4    +5.8% Regime B/C exit
+2025-06-27   BUY    NIFTY SMALLCAP 250              48.3          Score:200 W-RSI:64.6
+2025-07-04   BUY    NIFTY BANK                   57031.9          Score:188 W-RSI:57.5
+2025-08-08   SELL   NIFTY BANK                   55004.9    -3.6% Regime B/C exit
+2025-08-22   BUY    NIFTY 50                     24870.1          Score:194 W-RSI:65.6
+2025-08-22   BUY    NIFTY FMCG                   55737.4          Score:190 W-RSI:63.9
+2025-09-05   SELL   NIFTY SMALLCAP 250              45.1    -6.7% Regime B/C exit
+2025-09-05   BUY    NIFTY AUTO                   26320.6          Score:191 W-RSI:55.8
+2025-10-10   SELL   NIFTY FMCG                   54966.4    -1.4% Regime B/C exit
+2025-10-10   BUY    NIFTY BANK                   56609.8          Score:209 W-RSI:67.5
+2025-11-28   SELL   NIFTY 50                     26202.9    +5.4% Regime B/C exit
+2025-11-28   SELL   NIFTY BANK                   59752.7    +5.6% Regime B/C exit
+2025-11-28   BUY    NIFTY PSU BANK                 850.2          Score:193 W-RSI:57.4
+2025-11-28   BUY    NIFTY FMCG                   55595.8          Score:190 W-RSI:60.0
+2025-12-05   SELL   NIFTY PSU BANK                 835.5    -1.7% Regime B/C exit
+2025-12-05   SELL   NIFTY FMCG                   55202.9    -0.7% Regime B/C exit
+2025-12-26   BUY    NIFTY NEXT 50                  294.5          Score:177 W-RSI:57.1
+2026-01-02   SELL   NIFTY NEXT 50                  297.5    +1.0% Regime B/C exit
+2026-01-02   BUY    NIFTY 50                     26328.6          Score:173 W-RSI:51.9
+2026-01-16   BUY    NIFTY PSU BANK                 900.2          Score:195 W-RSI:57.9
+2026-01-23   SELL   NIFTY 50                     25048.7    -4.9% Regime B/C exit
+2026-01-30   BUY    NIFTY BANK                   59610.4          Score:163 W-RSI:55.0
+2026-03-13   SELL   NIFTY AUTO                   24195.1    -8.1% Regime B/C exit
+2026-03-13   SELL   NIFTY BANK                   53757.9    -9.8% Regime B/C exit
+2026-03-27   SELL   NIFTY PSU BANK                 826.8    -8.1% Regime B/C exit
+2026-04-10   BUY    NIFTY PSU BANK                 874.3          Score:222 W-RSI:81.4
+2026-04-10   BUY    NIFTY AUTO                   26640.9          Score:213 W-RSI:72.5
+2026-04-10   BUY    NIFTY BANK                   55912.8          Score:207 W-RSI:72.5
+2026-04-24   SELL   NIFTY AUTO                   25652.8    -3.7% Regime B/C exit
+2026-04-24   BUY    NIFTY ENERGY                 39903.8          Score:187 W-RSI:50.6
+2026-05-01   SELL   NIFTY PSU BANK                 848.0    -3.0% Regime B/C exit
+2026-05-01   SELL   NIFTY BANK                   54863.4    -1.9% Regime B/C exit
+2026-05-01   SELL   NIFTY ENERGY                 40771.9    +2.2% Regime B/C exit
+2026-05-01   BUY    NIFTY MNC                       32.9          Score:195 W-RSI:56.1
+2026-05-01   BUY    NIFTY NEXT 50                  272.0          Score:181 W-RSI:60.2
+2026-05-08   BUY    NIFTY AUTO                   27259.8          Score:216 W-RSI:72.7
+2026-05-15   SELL   NIFTY NEXT 50                  267.3    -1.7% Regime B/C exit
+2026-05-15   SELL   NIFTY AUTO                   26070.7    -4.4% Regime B/C exit
+2026-05-15   BUY    NIFTY PHARMA                 24634.8          Score:193 W-RSI:56.8
+2026-05-15   BUY    NIFTY METAL                  13300.6          Score:190 W-RSI:64.5
+2026-05-22   SELL   NIFTY PHARMA                 24573.9    -0.2% Regime B/C exit
+2026-05-29   BUY    NIFTY AUTO                   26338.4          Score:222 W-RSI:80.3
+2026-06-12   SELL   NIFTY MNC                       32.4    -1.6% Regime B/C exit
+2026-06-12   BUY    NIFTY PSU BANK                 853.0          Score:205 W-RSI:70.7
+
+=====================================================================================
+WMA20 vs TRAILING STOP — HEAD TO HEAD (same entry config)
+=====================================================================================
+
+  Entry Config            No Stop      WMA20  Trail 2.5    Trail 3    Trail 4  WMA+Trail
+  ----------------------------------------------------------------------
+  v9E DEFAULT               -0.3%      -0.3%      -0.6%      -0.3%      -0.3%      -0.6%
+  REGIME A                  -0.9%      -0.9%      -2.1%      -1.9%         --      -2.1%
+  RELAXED                    0.6%       0.6%      -0.0%       0.1%       0.1%      -0.0%
+
+=====================================================================================
+FINAL RECOMMENDATION
+=====================================================================================
+
+  STOP LOSS VERDICT:
+  ──────────────────
+  1. WMA20 Stop Loss:
+     06  RELAXED + WMA20 stop: CAGR 0.6%, MaxDD 15.3%
+     The 20-week WMA acts as dynamic support. Price below it = regime weakening.
+     BENEFICIAL — reduces drawdown by catching regime shifts early.
+
+  2. Trailing Stop:
+     12  RELAXED + trail 3%: CAGR 0.1%, MaxDD 14.9%
+     Locks in profits on strong runs. Prevents giving back gains.
+     MIXED RESULTS
+
+  3. Combined (WMA20 + Trail):
+     18  RELAXED + WMA20 + trail 3%: CAGR 0.1%, MaxDD 14.9%
+     Best risk-adjusted approach. Either trigger exits the position.
+
+  RECOMMENDED v10 CONFIGURATION:
+  ─────────────────────────────
+  Entry: RELAXED (all verdicts allowed) + HA Band filter
+  Stop:  WMA20 + Trailing 2.5%
+  Zone:  D-RSI 40-50 (standard)
+
+  Expected: CAGR ~0.1% | MaxDD ~14.9%

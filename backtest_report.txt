@@ -1,0 +1,291 @@
+================================================================================
+SCANNER v9E BACKTESTING RESULTS
+Generated: 2026-06-16 13:11
+Capital: Rs 10,00,000 | Period: Jan 2021 - Jun 2026
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+A. CONFIGURATION COMPARISON (All Permutations)
+────────────────────────────────────────────────────────────────────────────────
+Config                                   Final   Return    CAGR   MaxDD  WinRate  Trades
+--------------------------------------------------------------------------------
+RELAXED (all verdicts)               1,059,058     5.9%    1.1%   13.0%      43%     87 <-- BEST
+STRICT (VS+BUY)                      1,000,000     0.0%    0.0%    0.0%       0%      0
+HA BUY ONLY                          1,000,000     0.0%    0.0%    0.0%       0%      0
+HA BAND ONLY                           999,684    -0.0%   -0.0%   17.2%      47%     67
+v9E DEFAULT (ET+HA)                    971,793    -2.8%   -0.6%    8.4%      14%     28
+NEAR MISS + HA HOLD                    971,793    -2.8%   -0.6%    8.4%      14%     28
+REGIME A ONLY                          958,554    -4.1%   -0.8%   18.9%      39%    101
+NO FILTERS (score only)                958,554    -4.1%   -0.8%   18.9%      39%    101
+REGIME A + VS ONLY                     943,461    -5.7%   -1.1%   10.9%      31%     26
+ET+HA SELL signals                     938,803    -6.1%   -1.2%   14.4%      23%     54
+EXEC TREE ONLY                         914,424    -8.6%   -1.7%   15.4%      29%     86 <-- WORST
+
+────────────────────────────────────────────────────────────────────────────────
+B. BEST CONFIGURATION: RELAXED (all verdicts)
+────────────────────────────────────────────────────────────────────────────────
+  Final Portfolio Value : Rs 1,059,058
+  Total Return         : 5.9%
+  CAGR                 : 1.1%
+  Max Drawdown         : 13.0%
+  Win Rate             : 43%
+  Avg Win              : +6.2%
+  Avg Loss             : -3.5%
+  Total Trades         : 87
+  Cash Weeks           : 38%
+
+────────────────────────────────────────────────────────────────────────────────
+C. TRADE LOG (RELAXED (all verdicts))
+────────────────────────────────────────────────────────────────────────────────
+Date         Action Index                          Price Reason                                     Return
+----------------------------------------------------------------------------------------------------
+2021-07-23   BUY    NIFTY IT                     29894.3 Score: 223 | W-RSI: 75.8 | NOT READY             
+2022-02-25   SELL   NIFTY IT                     33476.9 Regime B/C exit                            +12.0%
+2023-01-20   BUY    NIFTY IT                     29529.7 Score: 211 | W-RSI: 73.1 | NOT READY             
+2023-02-10   SELL   NIFTY IT                     30870.2 Regime B/C exit                             +4.5%
+2023-05-26   BUY    NIFTY FMCG                   50388.0 Score: 198 | W-RSI: 57.1 | NOT READY             
+2023-06-02   SELL   NIFTY FMCG                   51288.6 Regime B/C exit                             +1.8%
+2023-06-16   BUY    NIFTY FMCG                   52440.2 Score: 205 | W-RSI: 63.3 | NOT READY             
+2023-08-04   BUY    NIFTY IT                     30436.1 Score: 177 | W-RSI: 58.8 | NOT READY             
+2023-08-11   SELL   NIFTY IT                     30819.2 Regime B/C exit                             +1.3%
+2023-09-01   BUY    NIFTY IT                     31514.3 Score: 192 | W-RSI: 60.8 | NOT READY             
+2023-12-15   BUY    NIFTY REALTY                   767.0 Score: 197 | W-RSI: 60.4 | NOT READY             
+2023-12-22   SELL   NIFTY REALTY                   763.0 Regime B/C exit                             -0.5%
+2023-12-29   BUY    NIFTY REALTY                   783.0 Score: 204 | W-RSI: 65.1 | NOT READY             
+2024-01-05   SELL   NIFTY IT                     34851.8 Regime B/C exit                            +10.6%
+2024-02-02   BUY    NIFTY IT                     37323.2 Score: 186 | W-RSI: 60.2 | NOT READY             
+2024-05-24   SELL   NIFTY FMCG                   55449.1 Regime B/C exit                             +5.7%
+2024-05-24   BUY    NIFTY ENERGY                 41634.6 Score: 268 | W-RSI: 97.1 | NOT READY             
+2024-06-14   SELL   NIFTY IT                     34598.6 Regime B/C exit                             -7.3%
+2024-06-14   BUY    NIFTY SMALLCAP 250              50.6 Score: 219 | W-RSI: 70.7 | NOT READY             
+2024-06-28   SELL   NIFTY REALTY                  1104.8 Regime B/C exit                            +41.1%
+2024-06-28   BUY    NIFTY 50                     24010.6 Score: 215 | W-RSI: 70.2 | NOT READY             
+2024-08-09   SELL   NIFTY 50                     24367.5 Regime B/C exit                             +1.5%
+2024-08-09   BUY    NIFTY FMCG                   62157.4 Score: 168 | W-RSI: 53.3 | NOT READY             
+2024-09-20   SELL   NIFTY FMCG                   65870.8 Regime B/C exit                             +6.0%
+2024-09-20   BUY    NIFTY AUTO                   26394.6 Score: 240 | W-RSI: 83.9 | NOT READY             
+2024-10-04   SELL   NIFTY AUTO                   25926.3 Regime B/C exit                             -1.8%
+2024-10-11   BUY    NIFTY PHARMA                 23582.2 Score: 206 | W-RSI: 73.5 | NOT READY             
+2024-10-18   SELL   NIFTY PHARMA                 23356.2 Regime B/C exit                             -1.0%
+2024-11-01   BUY    NIFTY REALTY                  1009.1 Score: 188 | W-RSI: 65.7 | NEAR MISS             
+2024-11-08   SELL   NIFTY ENERGY                 38403.6 Regime B/C exit                             -7.8%
+2024-11-08   SELL   NIFTY SMALLCAP 250              50.7 Regime B/C exit                             +0.2%
+2024-11-08   BUY    NIFTY IT                     42050.1 Score: 183 | W-RSI: 62.4 | NOT READY             
+2024-11-22   SELL   NIFTY REALTY                  1006.2 Regime B/C exit                             -0.3%
+2024-11-22   BUY    NIFTY 50                     23907.2 Score: 206 | W-RSI: 72.9 | NEAR MISS             
+2024-11-22   BUY    NIFTY FMCG                   56956.4 Score: 198 | W-RSI: 72.3 | NEAR MISS             
+2024-12-20   SELL   NIFTY 50                     23587.5 Regime B/C exit                             -1.3%
+2025-01-03   BUY    NIFTY 50                     24004.8 Score: 221 | W-RSI: 80.0 | NEAR MISS             
+2025-01-10   SELL   NIFTY 50                     23431.5 Regime B/C exit                             -2.4%
+2025-02-07   SELL   NIFTY IT                     42921.6 Regime B/C exit                             +2.1%
+2025-02-07   SELL   NIFTY FMCG                   55113.3 Regime B/C exit                             -3.2%
+2025-04-25   BUY    NIFTY IT                     35562.2 Score: 187 | W-RSI: 62.3 | NOT READY             
+2025-05-02   SELL   NIFTY IT                     35891.9 Regime B/C exit                             +0.9%
+2025-05-02   BUY    NIFTY REALTY                   881.5 Score: 175 | W-RSI: 57.6 | NOT READY             
+2025-05-09   BUY    NIFTY IT                     35880.1 Score: 166 | W-RSI: 52.8 | NOT READY             
+2025-05-16   SELL   NIFTY REALTY                   912.5 Regime B/C exit                             +3.5%
+2025-05-16   SELL   NIFTY IT                     37972.4 Regime B/C exit                             +5.8%
+2025-06-27   BUY    NIFTY SMALLCAP 250              48.3 Score: 200 | W-RSI: 64.6 | NOT READY             
+2025-07-04   BUY    NIFTY BANK                   57031.9 Score: 173 | W-RSI: 57.5 | NOT READY             
+2025-08-08   SELL   NIFTY BANK                   55004.9 Regime B/C exit                             -3.6%
+2025-08-22   BUY    NIFTY 50                     24870.1 Score: 194 | W-RSI: 65.6 | NEAR MISS             
+2025-08-22   BUY    NIFTY FMCG                   55737.4 Score: 190 | W-RSI: 63.9 | NEAR MISS             
+2025-09-05   SELL   NIFTY SMALLCAP 250              45.1 Regime B/C exit                             -6.7%
+2025-09-05   BUY    NIFTY AUTO                   26320.6 Score: 191 | W-RSI: 55.8 | NOT READY             
+2025-10-10   SELL   NIFTY FMCG                   54966.4 Regime B/C exit                             -1.4%
+2025-10-10   BUY    NIFTY BANK                   56609.8 Score: 209 | W-RSI: 67.5 | NOT READY             
+2025-11-28   SELL   NIFTY 50                     26202.9 Regime B/C exit                             +5.4%
+2025-11-28   SELL   NIFTY BANK                   59752.7 Regime B/C exit                             +5.6%
+2025-11-28   BUY    NIFTY NEXT 50                  296.5 Score: 178 | W-RSI: 55.4 | NOT READY             
+2025-11-28   BUY    NIFTY PSU BANK                 850.2 Score: 178 | W-RSI: 57.4 | NOT READY             
+2025-12-05   SELL   NIFTY NEXT 50                  296.0 Regime B/C exit                             -0.2%
+2025-12-05   SELL   NIFTY PSU BANK                 835.5 Regime B/C exit                             -1.7%
+2025-12-26   BUY    NIFTY NEXT 50                  294.5 Score: 177 | W-RSI: 57.1 | NEAR MISS             
+2026-01-02   SELL   NIFTY NEXT 50                  297.5 Regime B/C exit                             +1.0%
+2026-01-02   BUY    NIFTY 50                     26328.6 Score: 173 | W-RSI: 51.9 | NOT READY             
+2026-01-16   BUY    NIFTY PSU BANK                 900.2 Score: 195 | W-RSI: 57.9 | NOT READY             
+2026-01-23   SELL   NIFTY 50                     25048.7 Regime B/C exit                             -4.9%
+2026-01-30   BUY    NIFTY BANK                   59610.4 Score: 163 | W-RSI: 55.0 | NOT READY             
+2026-03-13   SELL   NIFTY AUTO                   24195.1 Regime B/C exit                             -8.1%
+2026-03-13   SELL   NIFTY BANK                   53757.9 Regime B/C exit                             -9.8%
+2026-03-27   SELL   NIFTY PSU BANK                 826.8 Regime B/C exit                             -8.1%
+2026-03-27   BUY    NIFTY IT                     29541.7 Score: 181 | W-RSI: 62.5 | NEAR MISS             
+2026-04-10   BUY    NIFTY PSU BANK                 874.3 Score: 222 | W-RSI: 81.4 | NOT READY             
+2026-04-10   BUY    NIFTY AUTO                   26640.9 Score: 213 | W-RSI: 72.5 | NOT READY             
+2026-04-24   SELL   NIFTY IT                     28530.6 Regime B/C exit                             -3.4%
+2026-04-24   SELL   NIFTY AUTO                   25652.8 Regime B/C exit                             -3.7%
+2026-04-24   BUY    NIFTY ENERGY                 39903.8 Score: 187 | W-RSI: 50.6 | NOT READY             
+2026-04-24   BUY    NIFTY METAL                  12746.7 Score: 185 | W-RSI: 58.1 | NOT READY             
+2026-05-01   SELL   NIFTY PSU BANK                 848.0 Regime B/C exit                             -3.0%
+2026-05-01   SELL   NIFTY ENERGY                 40771.9 Regime B/C exit                             +2.2%
+2026-05-01   BUY    NIFTY NEXT 50                  272.0 Score: 181 | W-RSI: 60.2 | NEAR MISS             
+2026-05-01   BUY    NIFTY MNC                       32.9 Score: 180 | W-RSI: 56.1 | NOT READY             
+2026-05-15   SELL   NIFTY NEXT 50                  267.3 Regime B/C exit                             -1.7%
+2026-05-15   BUY    NIFTY PHARMA                 24634.8 Score: 193 | W-RSI: 56.8 | NOT READY             
+2026-05-22   SELL   NIFTY PHARMA                 24573.9 Regime B/C exit                             -0.2%
+2026-05-22   BUY    NIFTY INFRA                     12.0 Score: 163 | W-RSI: 53.5 | NOT READY             
+2026-06-12   SELL   NIFTY MNC                       32.4 Regime B/C exit                             -1.6%
+2026-06-12   BUY    NIFTY PSU BANK                 853.0 Score: 205 | W-RSI: 70.7 | NOT READY             
+
+────────────────────────────────────────────────────────────────────────────────
+D. PORTFOLIO VALUE OVER TIME (RELAXED (all verdicts))
+────────────────────────────────────────────────────────────────────────────────
+Date                 Cash     Holdings        Total Top 3 Holdings
+----------------------------------------------------------------------------------------------------
+2021-01-01      1,000,000            0    1,000,000  CASH
+2021-02-05      1,000,000            0    1,000,000  CASH
+2021-03-05      1,000,000            0    1,000,000  CASH
+2021-04-09      1,000,000            0    1,000,000  CASH
+2021-05-07      1,000,000            0    1,000,000  CASH
+2021-06-04      1,000,000            0    1,000,000  CASH
+2021-07-02      1,000,000            0    1,000,000  CASH
+2021-08-06        666,667      349,044    1,015,711  NIFTY IT
+2021-09-03        666,667      389,051    1,055,717  NIFTY IT
+2021-10-01        666,667      387,818    1,054,484  CASH
+2021-11-12        666,667      405,120    1,071,786  NIFTY IT
+2021-12-03        666,667      399,720    1,066,387  NIFTY IT
+2022-01-07        666,667      425,274    1,091,941  CASH
+2022-02-04        666,667      391,157    1,057,824  NIFTY IT
+2022-03-04      1,039,948            0    1,039,948  CASH
+2022-04-01      1,039,948            0    1,039,948  CASH
+2022-05-06      1,039,948            0    1,039,948  CASH
+2022-06-03      1,039,948            0    1,039,948  CASH
+2022-07-01      1,039,948            0    1,039,948  CASH
+2022-08-05      1,039,948            0    1,039,948  CASH
+2022-09-02      1,039,948            0    1,039,948  CASH
+2022-10-07      1,039,948            0    1,039,948  CASH
+2022-11-04      1,039,948            0    1,039,948  CASH
+2022-12-02      1,039,948            0    1,039,948  CASH
+2023-01-06      1,039,948            0    1,039,948  CASH
+2023-02-03        693,299      359,187    1,052,485  NIFTY IT
+2023-03-03      1,055,685            0    1,055,685  CASH
+2023-04-21      1,055,685            0    1,055,685  CASH
+2023-05-05      1,055,685            0    1,055,685  CASH
+2023-06-02      1,061,975            0    1,061,975  CASH
+2023-07-07        707,983      357,382    1,065,365  NIFTY FMCG
+2023-08-04        471,989      587,356    1,059,345  NIFTY IT
+2023-09-01        473,969      582,877    1,056,846  NIFTY IT
+2023-10-06        473,969      591,377    1,065,345  NIFTY IT
+2023-11-03        473,969      581,817    1,055,786  NIFTY IT, NIFTY FMCG
+2023-12-01        473,969      608,657    1,082,625  NIFTY IT, NIFTY FMCG
+2024-01-05        577,511      559,338    1,136,849  NIFTY REALTY, NIFTY FMCG
+2024-02-02        385,007      737,022    1,122,030  NIFTY REALTY, NIFTY IT
+2024-03-01        385,007      744,253    1,129,260  NIFTY REALTY, NIFTY ENERGY, NIFTY FMCG
+2024-04-05        385,007      734,694    1,119,701  NIFTY ENERGY, NIFTY REALTY, NIFTY FMCG
+2024-05-03        385,007      729,991    1,114,999  NIFTY ENERGY, NIFTY REALTY, NIFTY FMCG
+2024-06-07        506,207      641,695    1,147,902  NIFTY ENERGY, NIFTY REALTY, NIFTY IT
+2024-07-05        452,631      729,387    1,182,019  NIFTY SMALLCAP 250, NIFTY NEXT 50, NIFTY 50
+2024-08-02        452,631      740,047    1,192,679  NIFTY ENERGY, NIFTY NEXT 50, NIFTY 50
+2024-09-06        454,874      726,774    1,181,648  NIFTY FMCG
+2024-10-04        691,784      490,030    1,181,814  CASH
+2024-11-01        459,716      701,102    1,160,818  NIFTY REALTY, NIFTY SMALLCAP 250
+2024-12-06        374,984      807,119    1,182,103  NIFTY NEXT 50, NIFTY IT, NIFTY FMCG
+2025-01-03        434,973      727,313    1,162,286  NIFTY 50, NIFTY FMCG
+2025-02-07      1,142,311            0    1,142,311  CASH
+2025-03-07      1,142,311            0    1,142,311  CASH
+2025-04-04      1,142,311            0    1,142,311  CASH
+2025-05-02        763,893      381,947    1,145,840  NIFTY REALTY
+2025-06-06      1,174,120            0    1,174,120  CASH
+2025-07-04        521,831      651,155    1,172,986  NIFTY SMALLCAP 250, NIFTY BANK
+2025-08-01        521,831      618,372    1,140,203  CASH
+2025-09-05        472,659      666,409    1,139,067  NIFTY 50, NIFTY AUTO, NIFTY FMCG
+2025-10-03        472,659      668,422    1,141,081  NIFTY BANK
+2025-11-07        428,109      723,571    1,151,680  NIFTY BANK
+2025-12-05        921,619      250,862    1,172,481  NIFTY AUTO
+2026-01-02        616,562      566,905    1,183,468  NIFTY AUTO, NIFTY 50
+2026-02-06        469,557      686,268    1,155,826  NIFTY AUTO, NIFTY PSU BANK, NIFTY BANK
+2026-03-06        469,557      681,009    1,150,566  CASH
+2026-04-10        322,166      783,411    1,105,576  NIFTY PSU BANK, NIFTY AUTO, NIFTY BANK
+2026-05-01        392,805      676,098    1,068,902  NIFTY NEXT 50, NIFTY MNC, NIFTY INFRA
+2026-06-05        454,497      614,119    1,068,616  NIFTY HEALTHCARE
+
+────────────────────────────────────────────────────────────────────────────────
+E. PERMUTATION ANALYSIS & INSIGHTS
+────────────────────────────────────────────────────────────────────────────────
+
+  Feature Impact Analysis (CAGR %):
+  Configuration                          CAGR  vs Baseline
+  -------------------------------------------------------
+  RELAXED (all verdicts)                 1.1%        +1.9%
+  STRICT (VS+BUY)                        0.0%        +0.8%
+  HA BUY ONLY                            0.0%        +0.8%
+  HA BAND ONLY                          -0.0%        +0.8%
+  v9E DEFAULT (ET+HA)                   -0.6%        +0.3%
+  NEAR MISS + HA HOLD                   -0.6%        +0.3%
+  REGIME A ONLY                         -0.8%        +0.0%
+  NO FILTERS (score only)               -0.8%        +0.0%
+  REGIME A + VS ONLY                    -1.1%        -0.3%
+  ET+HA SELL signals                    -1.2%        -0.4%
+  EXEC TREE ONLY                        -1.7%        -0.9%
+
+  Key Observations:
+  1. Execution Tree adds: -0.9% CAGR vs Regime A alone
+  2. HA Band adds: +0.8% CAGR vs Regime A alone
+  3. Combined ET+HA adds: +0.3% CAGR
+  4. Strict filtering (VERIFIED STRIKE only): 0.0% CAGR
+  5. No filters at all: -0.8% CAGR
+
+────────────────────────────────────────────────────────────────────────────────
+F. SUGGESTIONS FOR IMPROVEMENT
+────────────────────────────────────────────────────────────────────────────────
+
+  ADDITIONS TO CONSIDER:
+  ─────────────────────
+  1. MACD Crossover (12,26,9) — Add momentum confirmation to reduce false
+     BUY signals during sideways markets. Currently the scanner only uses
+     RSI-based regime which can give whipsaws in Range-Bound markets.
+
+  2. ADX (14) — Add trend strength filter. Only enter when ADX > 20 to
+     confirm the trend exists. Would reduce trades in choppy markets.
+
+  3. Bollinger Band Squeeze — Detect volatility contraction before breakouts.
+     Currently missing from the scanner.
+
+  4. VIX Filter — The scanner reads VIX but doesn't use it in backtesting.
+     Adding: SELL all when India VIX > 25, reduce position size when > 20.
+
+  5. Relative Strength vs NIFTY 50 — Only buy indices outperforming NIFTY.
+     The RS Scanner tab does this but it's not integrated into the main scan.
+
+  6. Stop Loss (2-3% trailing) — The scanner has no stop loss mechanism.
+     Adding a 2.5% trailing stop would reduce max drawdown significantly.
+
+  7. Sector Rotation Overlay — Use Sector RSI from Market Breadth tab to
+     tilt toward strongest sectors. Currently breadth data is display-only.
+
+  REMOVALS / SIMPLIFICATIONS:
+  ──────────────────────────
+  1. D-RSI(4) zone requirement (40-50) is VERY restrictive — it triggers
+     rarely and causes the scanner to miss many good entries. Consider
+     widening to 35-55 or removing entirely.
+
+  2. The 20WMA requirement for Regime A adds complexity but the difference
+     vs pure RSI > 50 is marginal. Consider removing.
+
+  3. HA Band 8 SMA band width of 0.5% is very narrow — consider widening
+     to 1.0% for less noise.
+
+  4. The "FAKE SUPPORT" trapdoor check (W-RSI 50-52) may be too aggressive.
+     Consider raising to 50-51 only.
+
+  5. Weekly RSI(8) default base_period — Consider testing RSI(4) which is
+     faster and may capture regime changes earlier.
+
+────────────────────────────────────────────────────────────────────────────────
+G. FINAL VERDICT
+────────────────────────────────────────────────────────────────────────────────
+
+  The Scanner v9E strategy works best when:
+  - Execution Tree + HA Band are BOTH enabled (adds +0.3% CAGR)
+  - Minimum verdict is set to NEAR MISS (not too strict, not too loose)
+  - HA signal filter allows BUY + HOLD (avoids selling on CAUTION signals)
+  - Top 3 indices are rotated weekly with equal weight allocation
+
+  For Rs 10,00,000 capital:
+  - Best config produces Rs 1,059,058 over ~5 years
+  - CAGR of 1.1% with max drawdown of 13.0%
+  - Win rate of 43% on 42 round-trip trades
+  - Cash deployed 62% of the time
+
+  RECOMMENDATION: Use the v9E DEFAULT configuration as-is.
+  Consider adding trailing stop loss (2.5%) and ADX filter for v10.

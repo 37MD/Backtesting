@@ -1,0 +1,17 @@
+{
+  "name": "Scanner v10 - Paper Trading",
+  "short_name": "Scanner v10",
+  "description": "NSE Index Scanner with Paper Trading - V9E_DEFAULT + ALL indicators + MONTHLY rebalancing",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#e94560",
+  "orientation": "any",
+  "icons": [
+    { "src": "icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "categories": ["finance", "utilities"],
+  "lang": "en",
+  "dir": "ltr"
+}

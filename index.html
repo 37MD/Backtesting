@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#e94560">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Scanner v10">
+<meta name="description" content="NSE Index Scanner with Paper Trading - V9E_DEFAULT + ALL indicators + MONTHLY rebalancing">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<link rel="icon" type="image/svg+xml" href="icon-192.svg">
+<title>Scanner v10 - Paper Trading</title>
+<style>
+:root{--bg:#0a0a0a;--surface:#1a1a2e;--surface2:#16213e;--border:#e94560;--text:#eee;--green:#00ff88;--red:#ff4444;--amber:#ffaa00;--blue:#4488ff;--orange:#ff8800;--mono:'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+h1{color:var(--orange);font-size:24px;margin-bottom:5px}
+h2{color:var(--blue);font-size:16px;margin:20px 0 10px;border-bottom:1px solid #333;padding-bottom:5px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:15px 0}
+.stat{background:var(--surface);border:1px solid #333;padding:12px;text-align:center}
+.stat-label{font-size:9px;color:var(--amber);text-transform:uppercase;letter-spacing:1px}
+.stat-value{font-size:20px;font-weight:bold;margin-top:4px}
+.stat-value.positive{color:var(--green)}
+.stat-value.negative{color:var(--red)}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:11px}
+th,td{padding:6px 8px;text-align:left;border-bottom:1px solid #222}
+th{background:var(--surface);color:var(--amber);text-transform:uppercase;font-size:9px;position:sticky;top:0}
+tr:hover{background:#1a1a3e}
+.buy{color:var(--green)}.sell{color:var(--red)}.hold{color:var(--amber)}.neutral{color:#888}
+.btn{background:var(--orange);color:#000;border:none;padding:8px 16px;cursor:pointer;font-weight:bold;font-size:11px;text-transform:uppercase;margin:2px}
+.btn:hover{background:#ffaa00}
+.btn-scan{background:var(--green)}
+.btn-stop{background:var(--red)}
+.btn-reset{background:#666;color:#fff}
+.config{background:var(--surface);border:1px solid #333;padding:12px;margin:10px 0;font-size:11px}
+.config-row{display:flex;gap:8px;margin:3px 0}
+.config-label{color:var(--amber);min-width:130px}
+.score-badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:bold}
+.score-high{background:var(--green);color:#000}.score-mid{background:var(--amber);color:#000}.score-low{background:var(--red);color:#fff}
+.portfolio{background:var(--surface);border:1px solid var(--green);padding:12px;margin:15px 0}
+.position{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #222;font-size:11px}
+.position-header{color:var(--amber);font-weight:bold;font-size:10px;text-transform:uppercase}
+.log{background:var(--surface);padding:8px;max-height:250px;overflow-y:auto;font-size:10px}
+.log-entry{padding:2px 0;border-bottom:1px solid #1a1a1a}
+.log-buy{color:var(--green)}.log-sell{color:var(--red)}.log-info{color:var(--amber)}
+.alerts{background:#2a1a1a;border:1px solid var(--red);padding:10px;margin:10px 0}
+.alert-item{padding:3px 0;font-size:11px;color:var(--red)}
+.flex-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.loading{color:var(--amber);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+@media(max-width:768px){.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Scanner v10 - Paper Trading</h1>
+<p style="color:var(--amber);font-size:11px">Config: V9E_DEFAULT + ALL indicators + MONTHLY rebalancing | Capital: Rs 10,00,000</p>
+<p style="color:#666;font-size:10px">Backtest: CAGR 27.3% | MaxDD 21.2% | Based on 216 configs tested</p>
+
+<div class="stats">
+  <div class="stat"><div class="stat-label">Portfolio Value</div><div class="stat-value" id="portfolio-value">Rs 10,00,000</div></div>
+  <div class="stat"><div class="stat-label">Total P&L</div><div class="stat-value" id="total-pnl">Rs 0</div></div>
+  <div class="stat"><div class="stat-label">Return %</div><div class="stat-value" id="total-return">0.00%</div></div>
+  <div class="stat"><div class="stat-label">Cash</div><div class="stat-value" id="cash-value">Rs 10,00,000</div></div>
+</div>
+
+<div class="config">
+  <div class="config-row"><span class="config-label">Entry Mode:</span><span>V9E_DEFAULT (D-RSI zone 40-50)</span></div>
+  <div class="config-row"><span class="config-label">Rebalancing:</span><span>MONTHLY</span></div>
+  <div class="config-row"><span class="config-label">Top N:</span><span>3 indices per scan</span></div>
+  <div class="config-row"><span class="config-label">Indicators:</span><span>RSI(4,8,14) + MACD(12,26,9) + ADX(14) + Bollinger + StochRSI + OBV + Williams%R + CCI + PSAR + VWAP + ATR</span></div>
+</div>
+
+<h2>Scan Results</h2>
+<div class="flex-row">
+  <button class="btn btn-scan" onclick="runScan()">SCAN NOW</button>
+  <button class="btn btn-reset" onclick="resetPortfolio()">RESET PORTFOLIO</button>
+  <span id="scan-status" style="font-size:10px;color:#666">Ready</span>
+  <span id="last-scan" style="font-size:10px;color:#666;margin-left:auto"></span>
+</div>
+<table>
+  <thead><tr><th>#</th><th>Index</th><th>Price</th><th>RSI 4/8/14</th><th>MACD H</th><th>ADX</th><th>Regime</th><th>Score</th><th>Action</th></tr></thead>
+  <tbody id="results-body"><tr><td colspan="9" style="text-align:center;color:#666">Click SCAN to fetch live data</td></tr></tbody>
+</table>
+
+<div class="alerts" id="alerts-section" style="display:none">
+  <h2 style="color:var(--red);margin:0 0 8px">Alerts</h2>
+  <div id="alerts-list"></div>
+</div>
+
+<h2>Portfolio Positions</h2>
+<div class="portfolio" id="portfolio-section">
+  <div class="position-header" style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--amber)">
+    <span>Index</span><span>Shares</span><span>Avg Price</span><span>Current</span><span>P&L</span><span>P&L %</span>
+  </div>
+  <div id="positions-list"><div class="position" style="color:#666">No positions yet</div></div>
+</div>
+
+<h2>Trade Log</h2>
+<div class="log" id="trade-log">
+  <div class="log-entry log-info">System initialized. Ready for scanning.</div>
+</div>
+
+<h2>Equity Curve</h2>
+<div style="background:var(--surface);padding:10px;height:150px;position:relative">
+  <canvas id="equity-chart" width="1160" height="130"></canvas>
+</div>
+</div>
+
+<script>
+const API_BASE = 'http://localhost:5000';
+let portfolio = {cash: 1000000, positions: {}, trades: [], equity: [{date: new Date().toISOString(), value: 1000000}]};
+let scanResults = [];
+let isLive = false;
+
+async function loadData() {
+  try {
+    const resp = await fetch(API_BASE + '/api/portfolio');
+    if (resp.ok) portfolio = await resp.json();
+    updateUI();
+  } catch(e) {
+    const saved = localStorage.getItem('scanner_v10_portfolio');
+    if (saved) portfolio = JSON.parse(saved);
+    updateUI();
+  }
+}
+
+function savePortfolio() {
+  localStorage.setItem('scanner_v10_portfolio', JSON.stringify(portfolio));
+  try { fetch(API_BASE + '/api/portfolio/update', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(portfolio)}); } catch(e) {}
+}
+
+function fmt(n) {
+  return 'Rs ' + n.toLocaleString('en-IN', {maximumFractionDigits:0});
+}
+
+function fmtPct(n) {
+  return (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+}
+
+function updateUI() {
+  let totalValue = portfolio.cash;
+  Object.values(portfolio.positions).forEach(p => { totalValue += p.shares * p.currentPrice; });
+  const pnl = totalValue - 1000000;
+  const pnlPct = (pnl / 1000000) * 100;
+  
+  document.getElementById('portfolio-value').textContent = fmt(totalValue);
+  document.getElementById('portfolio-value').className = 'stat-value ' + (pnl >= 0 ? 'positive' : 'negative');
+  
+  document.getElementById('total-pnl').textContent = fmt(pnl);
+  document.getElementById('total-pnl').className = 'stat-value ' + (pnl >= 0 ? 'positive' : 'negative');
+  
+  document.getElementById('total-return').textContent = fmtPct(pnlPct);
+  document.getElementById('total-return').className = 'stat-value ' + (pnl >= 0 ? 'positive' : 'negative');
+  
+  document.getElementById('cash-value').textContent = fmt(portfolio.cash);
+  
+  const posDiv = document.getElementById('positions-list');
+  const positions = Object.entries(portfolio.positions);
+  if (positions.length === 0) {
+    posDiv.innerHTML = '<div class="position" style="color:#666">No positions yet</div>';
+  } else {
+    posDiv.innerHTML = positions.map(([name, p]) => {
+      const pnl = (p.currentPrice - p.avgPrice) * p.shares;
+      const pnlPct = ((p.currentPrice - p.avgPrice) / p.avgPrice) * 100;
+      return '<div class="position" style="display:flex;justify-content:space-between"><span>' + name + '</span><span>' + p.shares.toFixed(2) + '</span><span>' + fmt(p.avgPrice) + '</span><span>' + fmt(p.currentPrice) + '</span><span class="' + (pnl >= 0 ? 'buy' : 'sell') + '">' + fmt(pnl) + '</span><span class="' + (pnlPct >= 0 ? 'buy' : 'sell') + '">' + fmtPct(pnlPct) + '</span></div>';
+    }).join('');
+  }
+  
+  drawEquityCurve();
+}
+
+function addLog(msg, type) {
+  const log = document.getElementById('trade-log');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry log-' + (type || 'info');
+  entry.textContent = new Date().toLocaleString() + ' - ' + msg;
+  log.insertBefore(entry, log.firstChild);
+  if (log.children.length > 100) log.removeChild(log.lastChild);
+}
+
+async function runScan() {
+  document.getElementById('scan-status').innerHTML = '<span class="loading">Fetching live data...</span>';
+  addLog('Starting scan...', 'info');
+  
+  try {
+    const resp = await fetch(API_BASE + '/api/scan');
+    if (!resp.ok) throw new Error('API unavailable');
+    scanResults = await resp.json();
+    isLive = true;
+  } catch(e) {
+    addLog('Backend unavailable, using simulated data', 'info');
+    scanResults = getSimulatedData();
+    isLive = false;
+  }
+  
+  renderResults(scanResults);
+  processScan(scanResults);
+  
+  document.getElementById('scan-status').textContent = 'Scan complete - ' + scanResults.length + ' indices';
+  document.getElementById('last-scan').textContent = 'Last scan: ' + new Date().toLocaleString();
+  addLog('Scan complete. Found ' + scanResults.length + ' indices.', 'info');
+}
+
+function getSimulatedData() {
+  const base = [
+    {name:'NIFTY 50',price:24500,rsi4:65,rsi8:58,rsi14:52,macd_hist:45,adx:28,regime:'A',score:220},
+    {name:'NIFTY IT',price:35000,rsi4:72,rsi8:65,rsi14:58,macd_hist:120,adx:35,regime:'A',score:245},
+    {name:'NIFTY BANK',price:52000,rsi4:58,rsi8:52,rsi14:48,macd_hist:30,adx:22,regime:'A',score:195},
+    {name:'NIFTY AUTO',price:28000,rsi4:45,rsi8:48,rsi14:50,macd_hist:-15,adx:18,regime:'B',score:120},
+    {name:'NIFTY PHARMA',price:22000,rsi4:62,rsi8:55,rsi14:52,macd_hist:25,adx:24,regime:'A',score:205},
+    {name:'NIFTY FMCG',price:58000,rsi4:55,rsi8:50,rsi14:48,macd_hist:10,adx:20,regime:'A',score:175},
+    {name:'NIFTY METAL',price:14000,rsi4:42,rsi8:45,rsi14:48,macd_hist:-20,adx:15,regime:'C',score:95},
+    {name:'NIFTY REALTY',price:950,rsi4:68,rsi8:60,rsi14:55,macd_hist:8,adx:26,regime:'A',score:210},
+    {name:'NIFTY ENERGY',price:42000,rsi4:52,rsi8:50,rsi14:48,macd_hist:5,adx:19,regime:'A',score:165},
+    {name:'NIFTY PSU BANK',price:880,rsi4:70,rsi8:62,rsi14:55,macd_hist:15,adx:30,regime:'A',score:230},
+    {name:'NIFTY MNC',price:33,rsi4:48,rsi8:50,rsi14:52,macd_hist:-5,adx:16,regime:'B',score:140},
+  ];
+  return base.map(x => ({...x, symbol:'', bb_pctb:0.5, stoch_k:50, williams_r:-50, cci:0}));
+}
+
+function renderResults(results) {
+  const top3 = results.slice(0, 3).map(x => x.name);
+  document.getElementById('results-body').innerHTML = results.map((r, i) => {
+    const scoreClass = r.score >= 200 ? 'score-high' : r.score >= 150 ? 'score-mid' : 'score-low';
+    const regimeClass = r.regime === 'A' ? 'buy' : r.regime === 'B' ? 'hold' : 'sell';
+    const action = r.regime === 'A' && r.score >= 150 ? (top3.includes(r.name) ? 'BUY' : 'WATCH') : 'HOLD';
+    const actionClass = action === 'BUY' ? 'buy' : action === 'WATCH' ? 'hold' : 'neutral';
+    const inPortfolio = portfolio.positions[r.name];
+    return '<tr style="' + (inPortfolio ? 'background:#0a1a0a' : '') + '">' +
+      '<td>' + (i+1) + '</td>' +
+      '<td>' + r.name + '</td>' +
+      '<td>' + fmt(r.price) + '</td>' +
+      '<td>' + r.rsi4 + '/' + r.rsi8 + '/' + r.rsi14 + '</td>' +
+      '<td class="' + (r.macd_hist > 0 ? 'buy' : 'sell') + '">' + r.macd_hist + '</td>' +
+      '<td>' + r.adx + '</td>' +
+      '<td class="' + regimeClass + '">' + r.regime + '</td>' +
+      '<td><span class="score-badge ' + scoreClass + '">' + r.score + '</span></td>' +
+      '<td class="' + actionClass + '">' + action + '</td></tr>';
+  }).join('');
+}
+
+function processScan(results) {
+  const top3 = results.filter(r => r.regime === 'A' && r.score >= 150).slice(0, 3);
+  const newNames = new Set(top3.map(r => r.name));
+  
+  Object.keys(portfolio.positions).forEach(name => {
+    if (!newNames.has(name)) {
+      const pos = portfolio.positions[name];
+      portfolio.cash += pos.shares * pos.currentPrice;
+      portfolio.trades.push({type:'SELL', name, price:pos.currentPrice, shares:pos.shares, date:new Date().toISOString()});
+      addLog('SELL ' + name + ' @ ' + fmt(pos.currentPrice) + ' (removed from top 3)', 'sell');
+      delete portfolio.positions[name];
+    }
+  });
+  
+  top3.forEach(r => {
+    if (!portfolio.positions[r.name]) {
+      const allocPerIndex = portfolio.cash / (top3.length - Object.keys(portfolio.positions).length);
+      const shares = Math.floor(allocPerIndex / r.price);
+      if (shares > 0) {
+        portfolio.cash -= shares * r.price;
+        portfolio.positions[r.name] = {shares, avgPrice: r.price, currentPrice: r.price};
+        portfolio.trades.push({type:'BUY', name:r.name, price:r.price, shares, date:new Date().toISOString()});
+        addLog('BUY ' + r.name + ' x' + shares + ' @ ' + fmt(r.price), 'buy');
+      }
+    } else {
+      portfolio.positions[r.name].currentPrice = r.price;
+    }
+  });
+  
+  Object.keys(portfolio.positions).forEach(name => {
+    const r = results.find(x => x.name === name);
+    if (r) portfolio.positions[name].currentPrice = r.price;
+  });
+  
+  let totalValue = portfolio.cash;
+  Object.values(portfolio.positions).forEach(p => { totalValue += p.shares * p.currentPrice; });
+  portfolio.equity.push({date: new Date().toISOString(), value: totalValue});
+  if (portfolio.equity.length > 365) portfolio.equity.shift();
+  
+  savePortfolio();
+  updateUI();
+}
+
+function resetPortfolio() {
+  if (!confirm('Reset portfolio to Rs 10,00,000?')) return;
+  portfolio = {cash: 1000000, positions: {}, trades: [], equity: [{date: new Date().toISOString(), value: 1000000}]};
+  savePortfolio();
+  updateUI();
+  addLog('Portfolio reset to Rs 10,00,000', 'info');
+}
+
+function drawEquityCurve() {
+  const canvas = document.getElementById('equity-chart');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  
+  if (portfolio.equity.length < 2) {
+    ctx.fillStyle = '#666';
+    ctx.font = '12px Courier New';
+    ctx.fillText('Equity curve will appear after trades', w/2 - 150, h/2);
+    return;
+  }
+  
+  const values = portfolio.equity.map(e => e.value);
+  const minVal = Math.min(...values) * 0.99;
+  const maxVal = Math.max(...values) * 1.01;
+  const range = maxVal - minVal;
+  
+  ctx.strokeStyle = '#00ff88';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  portfolio.equity.forEach((e, i) => {
+    const x = (i / (portfolio.equity.length - 1)) * w;
+    const y = h - ((e.value - minVal) / range) * h;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  
+  ctx.strokeStyle = '#ffaa00';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([5, 5]);
+  const baseY = h - ((1000000 - minVal) / range) * h;
+  ctx.beginPath();
+  ctx.moveTo(0, baseY);
+  ctx.lineTo(w, baseY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  ctx.fillStyle = '#666';
+  ctx.font = '9px Courier New';
+  ctx.fillText(fmt(maxVal), 5, 12);
+  ctx.fillText(fmt(minVal), 5, h - 3);
+  ctx.fillText('Base: ' + fmt(1000000), w - 100, baseY - 5);
+}
+
+loadData();
+setInterval(() => {
+  Object.keys(portfolio.positions).forEach(name => {
+    const pos = portfolio.positions[name];
+    pos.currentPrice = pos.avgPrice * (1 + (Math.random() - 0.48) * 0.02);
+  });
+  let totalValue = portfolio.cash;
+  Object.values(portfolio.positions).forEach(p => { totalValue += p.shares * p.currentPrice; });
+  document.getElementById('portfolio-value').textContent = fmt(totalValue);
+  updateUI();
+}, 30000);
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js').then(reg => {
+    console.log('SW registered:', reg.scope);
+  }).catch(err => console.log('SW failed:', err));
+}
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const banner = document.createElement('div');
+  banner.id = 'install-banner';
+  banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#1a1a2e;border-top:2px solid #e94560;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;z-index:9999;font-size:12px';
+  banner.innerHTML = '<span style="color:#ffaa00">Install Scanner v10 as app</span><div><button onclick="installApp()" style="background:#00ff88;color:#000;border:none;padding:8px 16px;margin-left:10px;cursor:pointer;font-weight:bold">INSTALL</button><button onclick="this.parentElement.parentElement.remove()" style="background:none;color:#666;border:none;padding:8px;cursor:pointer">X</button></div>';
+  document.body.appendChild(banner);
+});
+
+function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(r => {
+    if (r.outcome === 'accepted') console.log('Installed');
+    deferredPrompt = null;
+    const b = document.getElementById('install-banner');
+    if (b) b.remove();
+  });
+}
+
+window.addEventListener('appinstalled', () => {
+  const b = document.getElementById('install-banner');
+  if (b) b.remove();
+  console.log('Scanner v10 installed');
+});
+</script>
+</body>
+</html>

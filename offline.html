@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scanner v10 - Offline</title>
+<style>
+:root{--bg:#0a0a0a;--surface:#1a1a2e;--orange:#ff8800;--red:#e94560;--text:#eee;--amber:#ffaa00;--mono:'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);display:flex;justify-content:center;align-items:center;min-height:100vh}
+.card{background:var(--surface);border:2px solid var(--red);border-radius:16px;padding:40px;text-align:center;max-width:400px}
+h1{color:var(--orange);font-size:28px;margin-bottom:10px}
+.icon{font-size:64px;margin:20px 0}
+p{color:var(--amber);font-size:14px;margin:10px 0}
+.btn{display:inline-block;background:var(--orange);color:#000;border:none;padding:12px 24px;margin-top:20px;cursor:pointer;font-family:var(--mono);font-weight:bold;font-size:14px;border-radius:4px}
+.btn:hover{background:var(--amber)}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Scanner v10</h1>
+  <div class="icon">&#128268;</div>
+  <p>You are offline</p>
+  <p style="font-size:11px;color:#666">Connect to the internet to fetch live market data and run scans.</p>
+  <p style="font-size:11px;color:#666">Cached data may still be available when you reconnect.</p>
+  <button class="btn" onclick="location.reload()">Retry</button>
+</div>
+</body>
+</html>

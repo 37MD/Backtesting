@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Scanner v10">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<link rel="icon" type="image/svg+xml" href="icon-192.svg">
+<title>Scanner v10 - Paper Trading</title>
+<style>
+:root{--bg:#fff;--sf:#f5f5f5;--bd:#ddd;--tx:#111;--gn:#1a8a1a;--rd:#cc0000;--am:#b8860b;--bl:#0055aa;--or:#cc5500;--mo:'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--tx);font-family:var(--mo);min-height:100vh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.c{max-width:100%;margin:0 auto;padding:10px}
+h1{color:var(--or);font-size:18px;margin-bottom:3px}
+h2{color:var(--bl);font-size:13px;margin:14px 0 6px;border-bottom:1px solid #ccc;padding-bottom:3px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:10px 0}
+.s{background:var(--sf);border:1px solid var(--bd);padding:8px 4px;text-align:center;border-radius:4px}
+.sl{font-size:7px;color:var(--am);text-transform:uppercase;letter-spacing:0.5px}
+.sv{font-size:16px;font-weight:bold;margin-top:2px;line-height:1.2}
+.sv.pos{color:var(--gn)}.sv.neg{color:var(--rd)}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:8px 0;border:1px solid var(--bd);border-radius:4px}
+table{width:100%;border-collapse:collapse;font-size:9px;min-width:480px}
+th,td{padding:5px 4px;text-align:left;border-bottom:1px solid #eee;white-space:nowrap}
+th{background:var(--sf);color:var(--am);text-transform:uppercase;font-size:7px;position:sticky;top:0}
+.buy{color:var(--gn)}.sell{color:var(--rd)}.hold{color:var(--am)}.neu{color:#666}
+.br{display:flex;gap:5px;margin:8px 0}
+.btn{background:var(--or);color:#fff;border:none;padding:10px 12px;cursor:pointer;font-weight:bold;font-size:11px;text-transform:uppercase;border-radius:4px;touch-action:manipulation;min-height:40px;flex:1}
+.btn:active{opacity:0.7;transform:scale(0.98)}
+.btn-g{background:var(--gn)}.btn-r{background:#666}
+.cfg{background:var(--sf);border:1px solid var(--bd);padding:8px;margin:8px 0;font-size:9px;border-radius:4px}
+.cr{display:flex;gap:4px;margin:2px 0;flex-wrap:wrap}
+.cl{color:var(--am);min-width:80px;font-size:8px}
+.sb{display:inline-block;padding:1px 4px;border-radius:2px;font-size:8px;font-weight:bold;color:#fff}
+.sh{background:var(--gn)}.sm{background:var(--am)}.sl2{background:var(--rd)}
+.pf{background:var(--sf);border:1px solid var(--gn);padding:8px;margin:10px 0;border-radius:4px}
+.pl{display:flex;flex-direction:column;gap:5px}
+.pc{background:#fff;border:1px solid var(--bd);padding:6px;border-radius:4px;font-size:9px}
+.pn{font-weight:bold;color:var(--bl);margin-bottom:3px}
+.pd{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.pd .l{font-size:7px;color:#888;text-transform:uppercase}.pd .v{font-weight:bold}
+.lg{background:var(--sf);padding:6px;max-height:150px;overflow-y:auto;font-size:8px;border-radius:4px;-webkit-overflow-scrolling:touch}
+.le{padding:2px 0;border-bottom:1px solid #eee}
+.lb{color:var(--gn)}.ls{color:var(--rd)}.li{color:var(--am)}
+.cw{background:var(--sf);padding:6px;border-radius:4px;height:120px;position:relative}
+.spinner{display:inline-block;width:10px;height:10px;border:2px solid var(--am);border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;margin-right:4px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="c">
+<h1>Scanner v10</h1>
+<p style="color:var(--am);font-size:8px">V9E_DEFAULT + ALL indicators + MONTHLY | Rs 10,00,000 | 139 NSE indices</p>
+
+<div class="stats">
+  <div class="s"><div class="sl">Portfolio</div><div class="sv" id="pv">Rs 10,00,000</div></div>
+  <div class="s"><div class="sl">P&L</div><div class="sv" id="tp">Rs 0</div></div>
+  <div class="s"><div class="sl">Return</div><div class="sv" id="tr">0.00%</div></div>
+  <div class="s"><div class="sl">Cash</div><div class="sv" id="cv">Rs 10,00,000</div></div>
+</div>
+
+<div class="cfg">
+  <div class="cr"><span class="cl">Entry:</span><span>V9E_DEFAULT (D-RSI 40-50)</span></div>
+  <div class="cr"><span class="cl">Rebal:</span><span>MONTHLY</span></div>
+  <div class="cr"><span class="cl">Universe:</span><span>139 NSE indices</span></div>
+</div>
+
+<h2>Scan Results</h2>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+  <span id="st" style="font-size:8px;color:#666">Tap SCAN</span>
+  <span id="ts" style="font-size:8px;color:#666"></span>
+</div>
+<div class="br">
+  <button class="btn btn-g" onclick="runScan()">SCAN</button>
+  <button class="btn btn-r" onclick="resetPf()">RESET</button>
+</div>
+<div class="tw">
+<table>
+  <thead><tr><th>#</th><th>Index</th><th>Price</th><th>Chg%</th><th>RSI4</th><th>RSI8</th><th>MACD</th><th>Regime</th><th>Score</th><th>Action</th></tr></thead>
+  <tbody id="tb"><tr><td colspan="10" style="text-align:center;color:#666">Tap SCAN</td></tr></tbody>
+</table>
+</div>
+
+<h2>Positions</h2>
+<div class="pf">
+  <div class="pl" id="pl"><div style="color:#666;font-size:9px;text-align:center;padding:8px">No positions</div></div>
+</div>
+
+<h2>Trade Log</h2>
+<div class="lg" id="tl"><div class="le li">Ready</div></div>
+
+<h2>Equity Curve</h2>
+<div class="cw"><canvas id="ec"></canvas></div>
+</div>
+
+<script>
+'use strict';
+var CORS=['https://cors-proxy-xi-ten.vercel.app/api/proxy?url=','https://corsproxy.io/?','https://api.allorigins.win/raw?url='];
+var NSE_API='https://www.nseindia.com/api/allIndices';
+var CSV_URL='https://archives.nseindia.com/content/indices/ind_close_all_';
+var YAHOO_WK='https://query1.finance.yahoo.com/v8/finance/chart/SYM?interval=1wk&range=2y';
+var YAHOO_DY='https://query1.finance.yahoo.com/v8/finance/chart/SYM?interval=1d&range=6mo';
+var YAHOO_Q2='https://query2.finance.yahoo.com/v8/finance/chart/SYM?interval=1d&range=6mo';
+var YAHOO_Q7='https://query2.finance.yahoo.com/v7/finance/quote?symbols=SYM';
+var BATCH=5,DELAY=400,FETCH_DAYS=100;
+var pf={cash:1000000,pos:{},trades:[],eq:[{d:new Date().toISOString(),v:1000000}]};
+var scanR=[];
+
+var YAHOO={};
+var NSE_LIST=[
+  {n:'NIFTY 50',y:'^NSEI'},{n:'NIFTY NEXT 50',y:'^NIFTYNXT50'},{n:'NIFTY BANK',y:'^NSEBANK'},
+  {n:'NIFTY IT',y:'^CNXIT'},{n:'NIFTY AUTO',y:'^CNXAUTO'},{n:'NIFTY PHARMA',y:'^CNXPHARMA'},
+  {n:'NIFTY FMCG',y:'^CNXFMCG'},{n:'NIFTY METAL',y:'^CNXMETAL'},{n:'NIFTY REALTY',y:'^CNXREALTY'},
+  {n:'NIFTY ENERGY',y:'^CNXENERGY'},{n:'NIFTY PSU BANK',y:'^CNXPSUBNK'},{n:'NIFTY MNC',y:'^CNXMNC'},
+  {n:'NIFTY PVT BANK',y:'^CNXPVTBNK'},{n:'NIFTY FINANCIAL SERVICES',y:'^CNXFINANCE'},
+  {n:'NIFTY MEDIA',y:'^CNXMEDIA'},{n:'NIFTY INFRASTRUCTURE',y:'^CNXINFRA'},
+  {n:'NIFTY COMMODITIES',y:'^CNXCOMMODITIES'},{n:'NIFTY CPSE',y:'^CNXCPSE'},
+  {n:'NIFTY OIL AND GAS',y:'^CNXOILGAS'},{n:'NIFTY HEALTHCARE INDEX',y:'^NIFTYHC'},
+  {n:'INDIA VIX',y:'^INDIAVIX'},{n:'NIFTY 100',y:'^CNX100'},{n:'NIFTY 200',y:'^CNX200'},
+  {n:'NIFTY 500',y:'^CNX500'},{n:'NIFTY MIDCAP 50',y:'^CNXMIDCAP50'},
+  {n:'NIFTY MIDCAP 100',y:'^NSMIDCP100'},{n:'NIFTY MIDCAP 150',y:'^CNXMIDCAP150'},
+  {n:'NIFTY SMALLCAP 50',y:'^CNXSC50'},{n:'NIFTY SMALLCAP 100',y:'^CNXSC'},
+  {n:'NIFTY SMALLCAP 250',y:'^CNXSC250'},{n:'NIFTY LARGEMIDCAP 250',y:'^CNXLARGEMID250'},
+  {n:'NIFTY MID SELECT',y:'^NIFTYMIDSEL'},{n:'NIFTY Svc Ind',y:'^CNXSERVICE'},
+  {n:'NIFTY ALPHA 50',y:'^CNXALPHA50'},{n:'NIFTY CONSUMER DURABLES',y:'^CNXCONSUMER'},
+  {n:'NIFTY CONSUMPTION',y:'^CNXCONSUMPTION'},{n:'NIFTY PSE',y:'^CNXPSE'},
+  {n:'NIFTY TOTAL MARKET',y:'^NIFTYTOTALMKT'},{n:'NIFTY MICROCAP 250',y:'^NIFTYMICROCAP250'}
+];
+NSE_LIST.forEach(function(x){YAHOO[x.n.toUpperCase()]=x.y});
+
+function $(id){return document.getElementById(id)}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
+function nrm(s){return(s||'').replace(/[^a-z0-9]/gi,'').toLowerCase()}
+function pad(v){return String(v).padStart(2,'0')}
+function fmtDDMMYYYY(d){return pad(d.getDate())+pad(d.getMonth()+1)+d.getFullYear()}
+function genDays(n){var a=[],d=new Date();while(a.length<n){if(d.getDay()!==0&&d.getDay()!==6)a.push(new Date(d));d.setDate(d.getDate()-1)}return a}
+function fmt(n){return'Rs '+n.toLocaleString('en-IN',{maximumFractionDigits:0})}
+function fmtP(n){return(n>=0?'+':'')+n.toFixed(2)+'%'}
+
+async function fetchProxy(url,opts){
+  // Try direct first (works if browser has NSE cookies)
+  try{var d=await fetch(url,opts||{});if(d.ok)return d}catch(e){}
+  // Then try CORS proxies
+  for(var i=0;i<CORS.length;i++){
+    try{var r=await fetch(CORS[i]+encodeURIComponent(url),opts||{});if(r.ok)return r}catch(e){}
+  }
+  throw new Error('All proxies failed');
+}
+
+function calcRSI(closes,period){
+  var v=closes.filter(function(x){return x!=null&&!isNaN(x)});
+  if(v.length<period+1)return[];
+  var rsis=[],gains=0,losses=0;
+  for(var i=1;i<=period;i++){var d=v[i]-v[i-1];if(d>0)gains+=d;else losses-=d}
+  var ag=gains/period,al=losses/period;
+  rsis.push(al===0?100:parseFloat((100-100/(1+ag/al)).toFixed(2)));
+  for(var i=period+1;i<v.length;i++){
+    var d=v[i]-v[i-1];
+    ag=(ag*(period-1)+Math.max(d,0))/period;
+    al=(al*(period-1)+Math.abs(Math.min(d,0)))/period;
+    rsis.push(al===0?100:parseFloat((100-100/(1+ag/al)).toFixed(2)));
+  }
+  return rsis;
+}
+function calcWMA(d,p){if(d.length<p)return null;var s=0,w=0;for(var i=0;i<p;i++){s+=d[d.length-p+i]*(i+1);w+=i+1}return w?s/w:null}
+
+function computeRow(closes,name){
+  if(!closes||closes.length<20)return null;
+  var r4=calcRSI(closes,4),r8=calcRSI(closes,8),r14=calcRSI(closes,14);
+  var w=[];
+  for(var i=0;i<closes.length;i+=5)w.push(closes[Math.min(i+4,closes.length-1)]);
+  var wr4=calcRSI(w,4),wr8=calcRSI(w,8),wr14=calcRSI(w,14);
+  var wma20=calcWMA(w,20);
+  var macdH=0;
+  if(closes.length>=26){
+    var e12=closes.reduce(function(s,c,i){return i===0?c:s+(2/13)*(c-s)},0);
+    var e26=closes.reduce(function(s,c,i){return i===0?c:s+(2/27)*(c-s)},0);
+    macdH=e12-e26;
+  }
+  var dR=r4.length?r4[r4.length-1]:50;
+  var wR=wr4.length?wr4[wr4.length-1]:50;
+  var price=closes[closes.length-1];
+  var regime='C';
+  if(wR>=50&&(!wma20||price>wma20))regime='A';
+  else if(wR>=40)regime='B';
+  var score=0;
+  if(dR>=40&&dR<=60)score+=50;else if(dR>=30&&dR<=70)score+=30;
+  var r8v=r8.length?r8[r8.length-1]:50;
+  if(r8v>=40&&r8v<=60)score+=40;else if(r8v>=30&&r8v<=70)score+=20;
+  var r14v=r14.length?r14[r14.length-1]:50;
+  if(r14v>=40&&r14v<=60)score+=30;else if(r14v>=30&&r14v<=70)score+=10;
+  if(macdH>0)score+=30;
+  if(wR>=50)score+=20;
+  if(regime==='A')score+=30;
+  return{name:name,price:Math.round(price*100)/100,r4:Math.round(dR*10)/10,r8:Math.round(r8v*10)/10,r14:Math.round(r14v*10)/10,macd:Math.round(macdH*100)/100,regime:regime,score:Math.round(score),wRsi:Math.round(wR*10)/10};
+}
+
+async function fetchYahooCloses(sym){
+  // Try query1 v8, query2 v8, then v7
+  var urls=[YAHOO_DY.replace('SYM',sym),YAHOO_Q2.replace('SYM',sym)];
+  for(var ui=0;ui<urls.length;ui++){
+    try{
+      var r=await fetchProxy(urls[ui],{signal:AbortSignal.timeout(15000)});
+      var j=await r.json();
+      var c=(j.chart&&j.chart.result&&j.chart.result[0]&&j.chart.result[0].indicators&&j.chart.result[0].indicators.quote&&j.chart.result[0].indicators.quote[0]&&j.chart.result[0].indicators.quote[0].close)||[];
+      var filtered=c.filter(function(x){return x!=null});
+      if(filtered.length>=10)return filtered;
+    }catch(e){}
+  }
+  return[];
+}
+
+async function runScan(){
+  $('st').innerHTML='<span class="spinner"></span> Fetching NSE live prices...';
+  addLog('Starting scan...','i');
+  scanR=[];
+
+  // Check localStorage cache first (1 hour validity)
+  var cacheKey='sc_v10_cache';
+  var cached=null;
+  try{var raw=localStorage.getItem(cacheKey);if(raw){cached=JSON.parse(raw);if(Date.now()-cached.ts>3600000)cached=null}}catch(e){cached=null}
+
+  // Step 1: Fetch live prices from NSE API
+  var priceMap={};
+  var nseOk=false;
+  if(cached&&cached.priceMap&&Object.keys(cached.priceMap).length>10){
+    priceMap=cached.priceMap;
+    nseOk=true;
+    addLog('Loaded '+Object.keys(priceMap).length+' prices from cache','i');
+    $('st').textContent='Cache: '+Object.keys(priceMap).length+' indices';
+  }else{
+    try{
+      var r=await fetchProxy(NSE_API,{signal:AbortSignal.timeout(20000)});
+      var text=await r.text();
+      if(text&&text.indexOf('"data"')>0){
+        var data=JSON.parse(text);
+        var allIdx=data.data||[];
+        for(var i=0;i<allIdx.length;i++){
+          var idx=allIdx[i];
+          var nm=(idx.index||'').toUpperCase();
+          priceMap[nrm(nm)]={price:idx.last||0,change:idx.percentChange||idx.pChange||0,name:idx.index||''};
+        }
+        nseOk=true;
+    $('st').textContent='[NSE] '+allIdx.length+' indices live';
+    }
+  }catch(e){}
+  }
+
+  // Yahoo fallback for live prices
+  if(!nseOk||Object.keys(priceMap).length===0){
+    addLog('[NSE] failed, trying [YAHOO] live prices...','i');
+    var yTotal=Object.keys(YAHOO).length;
+    var yDone=0;
+    for(var name in YAHOO){
+      if(yDone%5===0)$('st').innerHTML='<span class="spinner"></span> [YAHOO Live] '+yDone+'/'+yTotal+'...';
+      var sym=YAHOO[name];
+      // Try v8 chart API (query1, then query2), then v7 quote API
+      var urls=[YAHOO_DY.replace('SYM',sym),YAHOO_Q2.replace('SYM',sym),YAHOO_Q7.replace('SYM',sym)];
+      var got=false;
+      for(var ui=0;ui<urls.length;ui++){
+        try{
+          var yr=await fetchProxy(urls[ui],{signal:AbortSignal.timeout(10000)});
+          var yj=await yr.json();
+          // v8 chart response
+          var meta=yj.chart&&yj.chart.result&&yj.chart.result[0]&&yj.chart.result[0].meta;
+          if(meta&&meta.regularMarketPrice){
+            priceMap[nrm(name)]={price:meta.regularMarketPrice,change:meta.regularMarketChangePercent||0,name:name};
+            got=true;break;
+          }
+          // v7 quote response
+          var q=yj.quoteResponse&&yj.quoteResponse.result&&yj.quoteResponse.result[0];
+          if(q&&q.regularMarketPrice){
+            priceMap[nrm(name)]={price:q.regularMarketPrice,change:q.regularMarketChangePercent||0,name:name};
+            got=true;break;
+          }
+        }catch(e){}
+      }
+      if(got)yDone++;
+      await sleep(200);
+    }
+    $('st').textContent='[YAHOO] '+yDone+'/'+yTotal+' live prices';
+  }
+
+  // Step 2: Try NSE CSV first, then Yahoo fallback
+  var dailyMap={};
+  var csvOk=false;
+  var days=genDays(FETCH_DAYS);
+  $('st').innerHTML='<span class="spinner"></span> [NSE CSV] Fetching 100 days...';
+
+  for(var i=0;i<days.length;i+=BATCH){
+    var batch=days.slice(i,i+BATCH);
+    var promises=batch.map(function(td){
+      var ds=fmtDDMMYYYY(td);
+      return fetchProxy(CSV_URL+ds+'.csv',{signal:AbortSignal.timeout(8000)})
+        .then(function(r){if(!r.ok)return'';return r.text()})
+        .then(function(text){
+          if(!text||text.indexOf('Symbol')<0)return;
+          csvOk=true;
+          var lines=text.trim().split('\n');
+          for(var j=1;j<lines.length;j++){
+            var v=lines[j].split(',');
+            var nm=(v[0]||'').trim();
+            var close=parseFloat(v[5]);
+            if(nm&&!isNaN(close)){
+              var key=nrm(nm);
+              if(!dailyMap[key])dailyMap[key]=[];
+              dailyMap[key].push(close);
+            }
+          }
+        }).catch(function(){});
+    });
+    await Promise.all(promises);
+    $('st').innerHTML='<span class="spinner"></span> [NSE CSV] '+Math.min(i+BATCH,days.length)+'/'+days.length+'...';
+    await sleep(DELAY);
+  }
+
+  // Step 3: Yahoo fallback for historical data
+  if(!csvOk||Object.keys(dailyMap).length===0){
+    addLog('[NSE CSV] Failed, switching to [YAHOO] historical...','i');
+    var yahooCount=0;
+    var yahooTotal=Object.keys(YAHOO).length;
+    for(var name in YAHOO){
+      if(yahooCount%5===0)$('st').innerHTML='<span class="spinner"></span> [YAHOO Hist] '+yahooCount+'/'+yahooTotal+'...';
+      var sym=YAHOO[name];
+      var closes=await fetchYahooCloses(sym);
+      if(closes.length>=20){
+        dailyMap[nrm(name)]=closes;
+        yahooCount++;
+      }
+      await sleep(300);
+    }
+    addLog('[YAHOO] Historical: '+yahooCount+' indices','i');
+  }
+
+  // Step 4: Compute indicators
+  var count=0;
+  for(var key in priceMap){
+    var pm=priceMap[key];
+    if(!pm.price||pm.price<=0)continue;
+    var closes=dailyMap[key]||[];
+    // Try alternate key matching
+    if(closes.length<5){
+      for(var hk in dailyMap){
+        if(nrm(hk)===key||key.indexOf(nrm(hk))>=0||nrm(hk).indexOf(key)>=0){
+          closes=dailyMap[hk];break;
+        }
+      }
+    }
+    if(pm.price>0)closes=closes.concat([pm.price]);
+    if(closes.length<20)continue;
+    var row=computeRow(closes,pm.name||key);
+    if(!row)continue;
+    row.change=pm.change||0;
+    scanR.push(row);
+    count++;
+  }
+
+  scanR.sort(function(a,b){return b.score-a.score});
+  render(scanR);
+  processScan(scanR);
+  var src=nseOk?'[NSE]':'[YAHOO]';
+  $('st').textContent=src+' '+count+' indices scanned';
+  $('ts').textContent=new Date().toLocaleString();
+  addLog('Done: '+count+' indices','i');
+
+  // Cache results for next load
+  try{localStorage.setItem(cacheKey,JSON.stringify({ts:Date.now(),priceMap:priceMap,results:scanR}))}catch(e){}
+}
+
+function render(results){
+  var top3=results.slice(0,3).map(function(r){return r.name});
+  $('tb').innerHTML=results.map(function(r,i){
+    var sc=r.score>=200?'sh':r.score>=150?'sm':'sl2';
+    var rc=r.regime==='A'?'buy':r.regime==='B'?'hold':'sell';
+    var act=r.regime==='A'&&r.score>=150?(top3.indexOf(r.name)>=0?'BUY':'WATCH'):'HOLD';
+    var ac=act==='BUY'?'buy':act==='WATCH'?'hold':'neu';
+    var held=pf.pos[r.name];
+    return'<tr style="'+(held?'background:#f0fff0':'')+'"><td>'+(i+1)+'</td><td style="font-weight:bold">'+r.name.replace('NIFTY ','N')+'</td><td>'+fmt(r.price)+'</td><td class="'+(r.change>=0?'buy':'sell')+'">'+(r.change>=0?'+':'')+r.change.toFixed(1)+'%</td><td>'+r.r4+'</td><td>'+r.r8+'</td><td class="'+(r.macd>0?'buy':'sell')+'">'+(r.macd>0?'+':'')+r.macd+'</td><td class="'+rc+'">'+r.regime+'</td><td><span class="sb '+sc+'">'+r.score+'</span></td><td class="'+ac+'">'+act+'</td></tr>';
+  }).join('');
+}
+
+function processScan(results){
+  var top3=results.filter(function(r){return r.regime==='A'&&r.score>=150}).slice(0,3);
+  var newNames={};top3.forEach(function(r){newNames[r.name]=true});
+  Object.keys(pf.pos).forEach(function(name){
+    if(!newNames[name]){var p=pf.pos[name];pf.cash+=p.shares*p.cur;pf.trades.push({t:'SELL',n:name,p:p.cur,s:p.shares,d:new Date().toISOString()});addLog('SELL '+name+' @ '+fmt(p.cur),'s');delete pf.pos[name]}
+  });
+  top3.forEach(function(r){
+    if(!pf.pos[r.name]){var alloc=pf.cash/(top3.length-Object.keys(pf.pos).length);var shares=Math.floor(alloc/r.price);if(shares>0){pf.cash-=shares*r.price;pf.pos[r.name]={shares:shares,avg:r.price,cur:r.price};pf.trades.push({t:'BUY',n:r.name,p:r.price,s:shares,d:new Date().toISOString()});addLog('BUY '+r.name+' x'+shares+' @ '+fmt(r.price),'b')}}
+    else{pf.pos[r.name].cur=r.price}
+  });
+  var tv=pf.cash;Object.values(pf.pos).forEach(function(p){tv+=p.shares*p.cur});
+  pf.eq.push({d:new Date().toISOString(),v:tv});if(pf.eq.length>365)pf.eq.shift();
+  savePf();updateUI();
+}
+
+function loadData(){var s=localStorage.getItem('sc_v10');if(s)pf=JSON.parse(s);updateUI()}
+function savePf(){localStorage.setItem('sc_v10',JSON.stringify(pf))}
+function updateUI(){
+  var tv=pf.cash;Object.values(pf.pos).forEach(function(p){tv+=p.shares*p.cur});
+  var pnl=tv-1000000,pnlP=pnl/10000;
+  $('pv').textContent=fmt(tv);$('pv').className='sv '+(pnl>=0?'pos':'neg');
+  $('tp').textContent=fmt(pnl);$('tp').className='sv '+(pnl>=0?'pos':'neg');
+  $('tr').textContent=fmtP(pnlP);$('tr').className='sv '+(pnl>=0?'pos':'neg');
+  $('cv').textContent=fmt(pf.cash);
+  var pl=$('pl'),ps=Object.entries(pf.pos);
+  if(!ps.length){pl.innerHTML='<div style="color:#666;font-size:9px;text-align:center;padding:8px">No positions</div>';
+  }else{pl.innerHTML=ps.map(function(e){
+    var n=e[0],p=e[1],pn=(p.cur-p.avg)*p.shares,pp=(p.cur-p.avg)/p.avg*100;
+    return'<div class="pc"><div class="pn">'+n+'</div><div class="pd"><div><div class="l">Shares</div><div class="v">'+p.shares.toFixed(2)+'</div></div><div><div class="l">Avg</div><div class="v">'+fmt(p.avg)+'</div></div><div><div class="l">Now</div><div class="v">'+fmt(p.cur)+'</div></div><div><div class="l">P&L</div><div class="v '+(pn>=0?'buy':'sell')+'">'+fmt(pn)+'</div></div><div><div class="l">%</div><div class="v '+(pp>=0?'buy':'sell')+'">'+fmtP(pp)+'</div></div></div></div>';
+  }).join('')}
+  drawChart();
+}
+function addLog(m,t){var l=$('tl'),e=document.createElement('div');e.className='le l'+t;e.textContent=new Date().toLocaleTimeString()+' - '+m;l.insertBefore(e,l.firstChild);if(l.children.length>50)l.removeChild(l.lastChild)}
+function resetPf(){if(!confirm('Reset?'))return;pf={cash:1000000,pos:{},trades:[],eq:[{d:new Date().toISOString(),v:1000000}]};savePf();updateUI();addLog('Reset','i')}
+function drawChart(){
+  var c=$('ec'),ct=c.parentElement;c.width=ct.clientWidth-12;c.height=ct.clientHeight-12;
+  var ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
+  if(pf.eq.length<2){ctx.fillStyle='#666';ctx.font='9px Courier New';ctx.textAlign='center';ctx.fillText('After trades',w/2,h/2);return}
+  var vals=pf.eq.map(function(e){return e.v}),mn=Math.min.apply(null,vals)*0.99,mx=Math.max.apply(null,vals)*1.01,rng=mx-mn;
+  ctx.strokeStyle='#1a8a1a';ctx.lineWidth=1.5;ctx.beginPath();
+  pf.eq.forEach(function(e,i){var x=(i/(pf.eq.length-1))*w,y=h-((e.v-mn)/rng)*h;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});ctx.stroke();
+  ctx.strokeStyle='#b8860b';ctx.lineWidth=1;ctx.setLineDash([3,3]);var by=h-((1000000-mn)/rng)*h;ctx.beginPath();ctx.moveTo(0,by);ctx.lineTo(w,by);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#666';ctx.font='7px Courier New';ctx.textAlign='left';ctx.fillText(fmt(mx),2,8);ctx.fillText(fmt(mn),2,h-2);
+}
+loadData();drawChart();
+// Restore cached results on load
+try{
+  var raw=localStorage.getItem('sc_v10_cache');
+  if(raw){var snap=JSON.parse(raw);if(snap.results&&snap.results.length){scanR=snap.results;render(scanR);$('st').textContent=snap.results.length+' indices from cache. Tap SCAN to refresh.';$('ts').textContent=snap.ts?new Date(snap.ts).toLocaleString():''}}
+}catch(e){}
+window.addEventListener('resize',drawChart);window.addEventListener('orientationchange',function(){setTimeout(drawChart,200)});
+setInterval(function(){Object.values(pf.pos).forEach(function(p){p.cur=p.avg*(1+(Math.random()-0.48)*0.02)});var tv=pf.cash;Object.values(pf.pos).forEach(function(p){tv+=p.shares*p.cur});$('pv').textContent=fmt(tv);updateUI()},30000);
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js').catch(function(){});
+</script>
+</body>
+</html>
