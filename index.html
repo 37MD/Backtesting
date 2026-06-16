@@ -1,0 +1,2884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- ── 1.1 Document Meta ── -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scanner V6</title>
+<meta name="theme-color" content="#f5f0e8">
+  <!-- ── 1.2 PWA Metadata ── -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LD Scanner">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon.png">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<!-- ── 1.3 External Fonts & Libraries ── -->
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ── 2.1 CSS Variables & Reset ── */
+:root{--bg:#f5f0e8;--surface:#faf7f0;--surface2:#f0ebe0;--border:#e0d8c8;--border2:#d0c8b8;--text:#000000;--text-dim:#222222;--text-faint:#444444;--orange:#d4880f;--orange-dim:#f5e6c8;--green:#1a8a4a;--green-dim:#d4f0e0;--red:#cc3344;--red-dim:#f0d4d8;--amber:#b8860b;--amber-dim:#f0e8c8;--blue:#3a7abf;--blue-dim:#d4e4f4;--mono:'IBM Plex Mono',monospace;--sans:'Syne',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+#root{position:relative;z-index:1}
+/* ── 2.2 App Shell: Header, Live Dot ── */
+.app-header{background:var(--surface);border-bottom:1px solid var(--border2);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-icon{width:36px;height:36px;background:var(--orange);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;font-weight:600;color:#000;clip-path:polygon(10% 0%,90% 0%,100% 10%,100% 90%,90% 100%,10% 100%,0% 90%,0% 10%)}
+.brand-text h1{font-size:18px;font-weight:800;color:var(--text);line-height:1}
+.brand-text p{font-size:11px;color:var(--text-dim);font-family:var(--mono);margin-top:2px}
+.header-right{display:flex;align-items:center;gap:16px}
+.live-dot{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--text-dim)}
+.live-dot::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--text-faint)}
+.live-dot.active::before{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* ── 2.3 Layout ── */
+.main-wrap{max-width:1500px;margin:0 auto;padding:24px 20px}
+/* ── 2.4 Controls Bar & Buttons ── */
+.controls-bar{background:var(--surface);border:1px solid var(--border2);padding:10px 14px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.controls-left{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.btn-scan{background:var(--orange);color:#000;font-family:var(--mono);font-size:12px;font-weight:600;padding:9px 22px;border:none;cursor:pointer;letter-spacing:1px;text-transform:uppercase;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%)}
+.btn-scan:hover{background:#ffb87d;transform:translateY(-1px)}
+.btn-stop{background:transparent;color:var(--red);font-family:var(--mono);font-size:12px;font-weight:600;padding:9px 22px;border:1px solid var(--red);cursor:pointer;letter-spacing:1px;text-transform:uppercase}
+.filter-group{display:flex;align-items:center;gap:8px}
+.filter-label{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase}
+.filter-select{background:var(--surface2);color:var(--text);border:1px solid var(--border2);font-family:var(--mono);font-size:12px;padding:6px 10px;cursor:pointer;outline:none;appearance:none;padding-right:28px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238888aa'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.filter-select:focus{border-color:var(--orange)}
+/* ── 2.4a Progress Bar ── */
+.progress-wrap{background:var(--surface);border:1px solid var(--border2);padding:10px 18px;border-top:none;margin-top:-20px;margin-bottom:20px}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.progress-label{font-family:var(--mono);font-size:11px;color:var(--text-dim)}
+.progress-pct{font-family:var(--mono);font-size:11px;color:var(--orange);font-weight:600}
+.progress-track{height:3px;background:var(--border2);width:100%}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--orange),#ffcc66);transition:width .3s ease;box-shadow:0 0 8px var(--orange)}
+/* ── 2.5 Scanner Table & Freeze Columns ── */
+.table-wrap{border:1px solid var(--border2);overflow-x:auto;background:var(--surface);position:relative}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
+/* ── Freeze: sticky headers ── */
+thead th{padding:11px 12px;font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text-dim);letter-spacing:1.2px;text-transform:uppercase;border-right:1px solid var(--border);border-bottom:1px solid var(--border2);white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;z-index:3;background:var(--surface2)}
+thead tr.group-header th{padding:6px 12px;font-size:9px;letter-spacing:1.5px;color:var(--text);background:var(--surface);border-bottom:2px solid var(--border2);cursor:default;top:0;z-index:4}
+thead tr.group-header th:first-child,
+thead tr.group-header th:nth-child(2){z-index:6}
+thead tr:not(.group-header) th{top:26px!important}
+@media(max-width:600px){thead tr:not(.group-header) th{top:20px!important}}
+thead th:last-child{border-right:none}
+/* ── Freeze: col 1 (#) ── */
+thead th:nth-child(1),
+tbody td:nth-child(1){position:sticky;left:0;z-index:2;background:var(--surface2)}
+tbody td:nth-child(1){background:var(--surface);z-index:1}
+/* ── Freeze: col 2 (Index) ── */
+thead th:nth-child(2),
+tbody td:nth-child(2){position:sticky;left:30px;z-index:2;background:var(--surface2)}
+tbody td:nth-child(2){background:var(--surface);z-index:1}
+/* Header corner: col 1+2 must be above everything */
+thead th:nth-child(1){z-index:5}
+thead th:nth-child(2){z-index:5}
+/* Shadow on frozen cols to show scroll */
+tbody td:nth-child(2),thead th:nth-child(2){box-shadow:3px 0 6px -2px rgba(0,0,0,0.5)}
+/* ── Mobile: compact frozen cols ── */
+@media(max-width:600px){
+  thead th{padding:8px 6px;font-size:9px;letter-spacing:0.6px}
+  thead tr.group-header th{padding:4px 6px;font-size:8px}
+  tbody td{padding:7px 6px;font-size:11px}
+  thead th:nth-child(1),tbody td:nth-child(1){min-width:0;width:24px;padding-left:5px;padding-right:4px;font-size:9px}
+  thead th:nth-child(2),tbody td:nth-child(2){left:28px}
+  td.name-col{min-width:60px;max-width:70px;font-size:9px;white-space:normal;word-break:break-all}
+  .pill{min-width:30px;padding:2px 5px;font-size:8px}
+  .conf-pill{min-width:22px;padding:1px 3px;font-size:8px}
+  .controls-bar{padding:6px 8px;display:grid;grid-template-columns:1fr 1fr;gap:4px;align-items:start}
+  .controls-left{display:contents}
+  .controls-left .filter-group{display:flex;flex-direction:column;gap:2px}
+  .controls-left .filter-select{font-size:9px;padding:4px 6px;width:100%;min-width:0!important}
+  .controls-left .filter-label{font-size:8px}
+  .btn-scan,.btn-stop{font-size:10px;padding:5px 10px;width:100%;text-align:center;grid-column:1/-1}
+}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:hover{background:var(--surface2)!important}
+tbody tr:last-child{border-bottom:none}
+tbody td{padding:9px 12px;font-family:var(--mono);font-size:12px;color:var(--text);border-right:1px solid var(--border);white-space:nowrap;border-bottom:1px solid var(--border)}
+tbody td:last-child{border-right:none}
+tbody tr{background:var(--bg)}
+/* ── 2.6 Pills & Status Badges ── */
+.rsi-green{background:var(--green-dim)!important;color:var(--green)!important}
+.rsi-amber{background:var(--amber-dim)!important;color:var(--amber)!important}
+.rsi-red{background:var(--red-dim)!important;color:var(--red)!important}
+.pill{display:inline-block;padding:3px 10px;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-radius:2px;min-width:44px;text-align:center}
+.pill-A{background:var(--green-dim);color:var(--green);border:1px solid var(--green)}
+.pill-B{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber)}
+.pill-C{background:var(--red-dim);color:var(--red);border:1px solid var(--red)}
+.pill-BUY{background:var(--green-dim);color:var(--green);border:1px solid var(--green)}
+.pill-SELL{background:var(--red-dim);color:var(--red);border:1px solid var(--red)}
+.pill-REDUCE{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber)}
+.pill-HOLD{background:var(--surface2);color:var(--text-dim);border:1px solid var(--border2)}
+
+.conf-pill{display:inline-block;padding:2px 6px;font-family:var(--mono);font-size:10px;font-weight:500;border-radius:2px;min-width:30px;text-align:center;border:1px solid transparent}
+td.name-col{font-family:var(--sans);font-size:11px;font-weight:600;color:var(--text);min-width:120px;word-break:break-word;overflow-wrap:break-word;white-space:normal}
+.empty-state{padding:80px 20px;text-align:center}
+.empty-state .big-icon{font-size:48px;margin-bottom:16px}
+.empty-state h2{font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px}
+.empty-state p{font-family:var(--mono);font-size:12px;color:var(--text-dim)}
+@media(max-width:600px){.empty-state{padding:40px 12px}.empty-state .big-icon{font-size:36px}.empty-state h2{font-size:16px}}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-faint)}
+.table-top-scroll::-webkit-scrollbar{height:6px}
+.table-top-scroll::-webkit-scrollbar-track{background:var(--surface)}
+.table-top-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.table-top-scroll::-webkit-scrollbar-thumb:hover{background:var(--text-faint)}
+/* ── 2.7 Breadth Analysis (BA) Styles ── */
+.ba-loading{display:inline-block;width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--orange);border-radius:50%;animation:baSpin .7s linear infinite;vertical-align:middle}
+@keyframes baSpin{to{transform:rotate(360deg)}}
+.ba-pill{display:inline-block;padding:3px 10px;font-family:var(--mono);font-size:11px;font-weight:700;border-radius:2px;min-width:48px;text-align:center;color:var(--text)}
+.ba-strong{background:var(--green-dim);border:1px solid var(--green);color:var(--green)}
+.ba-moderate{background:var(--amber-dim);border:1px solid var(--amber);color:var(--amber)}
+.ba-weak{background:var(--red-dim);border:1px solid var(--red);color:var(--red)}
+.ba-na{background:var(--surface2);border:1px solid var(--border2);color:var(--text-faint)}
+.ba-key-bar{background:var(--surface);border:1px solid var(--orange);border-left:4px solid var(--orange);padding:8px 18px;margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ba-key-label{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--orange);white-space:nowrap}
+
+.ba-key-input{flex:1;min-width:70px;background:var(--surface2);border:1px solid var(--border2);font-family:var(--mono);font-size:11px;padding:5px 10px;color:var(--text);outline:none}
+.ba-key-input:focus{border-color:var(--orange)}
+.ba-key-save{background:var(--orange);color:#000;font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 16px;border:none;cursor:pointer;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+.ba-key-status{font-family:var(--mono);font-size:10px;color:var(--text-dim)}
+@media(max-width:600px){.ba-key-bar{padding:6px 10px;gap:6px}.ba-key-input{font-size:10px;padding:5px 8px;min-width:0}.ba-key-save{font-size:10px;padding:5px 10px}}
+@media(max-width:768px){.app-header{padding:10px 12px}.main-wrap{padding:12px 8px}}
+@media(max-width:600px){.app-header .brand-text p{display:none}.app-header .header-right .live-dot{font-size:9px}.brand{flex-shrink:1;min-width:0}.brand-text h1{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+
+/* ── 2.8 Column Group Backgrounds ── */
+th[data-group="1"], td[data-group="1"]{background:rgba(180,180,180,0.08)}
+th[data-group="2"], td[data-group="2"]{background:rgba(100,150,200,0.06)}
+th[data-group="3"], td[data-group="3"]{background:rgba(140,200,100,0.06)}
+th[data-group="4"], td[data-group="4"]{background:rgba(200,140,100,0.06)}
+th[data-group="5"], td[data-group="5"]{background:rgba(200,100,140,0.06)}
+.group-start{border-left:3px solid rgba(80,80,80,0.5)!important}
+
+/* ── 2.9 HA Band Add-on (V3D) ── */
+.ha-signal-buy{background:var(--green-dim)!important;color:var(--green)!important;border:1px solid var(--green)!important}
+.ha-signal-sell{background:var(--red-dim)!important;color:var(--red)!important;border:1px solid var(--red)!important}
+.ha-signal-watch{background:var(--amber-dim)!important;color:var(--amber)!important;border:1px solid var(--amber)!important}
+.ha-signal-neutral{background:var(--surface2)!important;color:var(--text-faint)!important;border:1px solid var(--border2)!important}
+.wma-yes{background:var(--green-dim)!important;color:var(--green)!important;font-weight:700}
+.wma-no{background:var(--red-dim)!important;color:var(--red)!important;font-weight:700}
+.ha-pill{display:inline-block;padding:3px 9px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;border-radius:2px;min-width:52px;text-align:center;border:1px solid transparent}
+.ha-reason{font-family:var(--mono);font-size:10px;color:var(--text-dim);min-width:220px;line-height:1.45;white-space:normal;word-break:break-word}
+
+/* Separator between existing cols and HA addon */
+th.ha-sep,td.ha-sep{border-left:3px solid var(--orange)!important}
+
+/* ── 2.10 Summary Tiles ── */
+.summary-row{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin-bottom:16px}
+.s-tile{background:var(--surface);border:1px solid var(--border2);padding:12px 14px;cursor:pointer;transition:border-color .15s,background .15s;border-left:3px solid var(--border2)}
+.s-tile:hover{border-color:var(--text-dim)}
+.s-tile.active-buy{background:var(--green-dim);border-color:var(--green);border-left-color:var(--green)}
+.s-tile.active-hold{background:var(--amber-dim);border-color:var(--amber);border-left-color:var(--amber)}
+.s-tile.active-sell{background:var(--red-dim);border-color:var(--red);border-left-color:var(--red)}
+.s-tile.active-miss{background:var(--blue-dim);border-color:var(--blue);border-left-color:var(--blue)}
+.s-tile-lbl{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-faint);margin-bottom:5px}
+.s-tile-num{font-size:26px;font-weight:700;line-height:1}
+.s-tile-num.g{color:var(--green)} .s-tile-num.y{color:var(--amber)} .s-tile-num.r{color:var(--red)} .s-tile-num.b{color:var(--blue)} .s-tile-num.d{color:var(--text-dim)}
+.s-tile-sub{font-family:var(--mono);font-size:9px;color:var(--text-faint);margin-top:3px}
+@media(max-width:768px){.summary-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:480px){.summary-row{grid-template-columns:repeat(2,1fr)}}
+
+/* ── 2.11 Tab Navigation ── */
+.app-tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border2);padding:0 24px;gap:0;position:relative;z-index:200}
+.tab-btn{font-family:var(--mono);font-size:11px;font-weight:600;padding:10px 20px;border:none;background:transparent;color:var(--text-dim);cursor:pointer;letter-spacing:1px;text-transform:uppercase;border-bottom:2px solid transparent;transition:all .15s}
+.tab-btn:hover{color:var(--text);background:var(--surface2)}
+.tab-btn.active{color:var(--orange);border-bottom-color:var(--orange);background:var(--orange-dim)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+@media(max-width:600px){.app-tabs{padding:0 8px}.tab-btn{font-size:9px;padding:8px 10px;letter-spacing:0.5px}}
+@media(max-width:480px){.tab-btn{font-size:8px;padding:6px 5px;letter-spacing:0}.app-tabs{gap:2px}}
+
+/* ── 2.12 Market Breadth Scanner (scoped with .breadth-panel) ── */
+.breadth-panel{--bp-bg:#f5f0e8;--bp-bg2:#faf7f0;--bp-bg3:#f0ebe0;--bp-border:#d0c8b8;--bp-border2:#c0b8a8;--bp-bull:#2e7d32;--bp-bull2:#1b5e20;--bp-bear:#c62828;--bp-bear2:#b71c1c;--bp-side:#e65100;--bp-side2:#bf360c;--bp-large:#1565c0;--bp-mid:#7b1fa2;--bp-small:#d84315;--bp-text:#1a1a1a;--bp-muted:#666666;--bp-accent:#8d6e63;font-family:'Rajdhani',sans-serif;background:var(--bp-bg);color:var(--bp-text);min-height:100vh;overflow-x:hidden;border:3px solid var(--bp-border);border-radius:4px;margin:4px}
+.breadth-panel *{margin:0;padding:0;box-sizing:border-box}
+.breadth-panel .bp-header{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:linear-gradient(135deg,#faf7f0 0%,#f0ebe0 100%);border-bottom:1px solid var(--bp-border2);box-shadow:0 2px 12px rgba(0,0,0,0.06)}
+.breadth-panel .bp-h-left{display:flex;align-items:center;gap:16px}
+.breadth-panel .bp-logo{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;color:var(--bp-accent);letter-spacing:3px}
+.breadth-panel .bp-logo span{color:var(--bp-text)}
+.breadth-panel .bp-sub{font-family:'Share Tech Mono';font-size:11px;color:var(--bp-muted)}
+.breadth-panel .bp-h-right{display:flex;align-items:center;gap:24px}
+.breadth-panel #bpNiftyVal{font-size:16px}
+@media(max-width:768px){.breadth-panel #bpNiftyVal{font-size:13px}}
+@media(max-width:600px){.breadth-panel #bpNiftyVal{font-size:12px}}
+.breadth-panel .bp-live{width:8px;height:8px;border-radius:50%;background:var(--bp-bull);box-shadow:0 0 12px rgba(46,125,50,0.3);animation:bpPulse 2s infinite}
+@keyframes bpPulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.breadth-panel .bp-update{font-family:'Share Tech Mono';font-size:11px;color:var(--bp-muted)}
+.breadth-panel .bp-main{position:relative;z-index:1;padding:16px 20px;display:flex;flex-direction:column;gap:16px;max-width:1500px;margin:0 auto}
+.breadth-panel .bp-verdict{padding:12px 16px;border-radius:4px;display:flex;align-items:center;justify-content:space-between;gap:16px;font-family:'Share Tech Mono'}
+.breadth-panel .bp-verdict.bull{border:1px solid rgba(46,125,50,0.3)}
+.breadth-panel .bp-verdict.bear{border:1px solid rgba(198,40,40,0.3)}
+.breadth-panel .bp-verdict.side{border:1px solid rgba(230,81,0,0.3)}
+.breadth-panel .bp-vtext{font-size:13px;color:var(--bp-text)}
+.breadth-panel .bp-vaction{font-size:11px;color:var(--bp-muted)}
+.breadth-panel .bp-vlabel{font-family:'Orbitron';font-size:26px;font-weight:900;white-space:nowrap}
+.breadth-panel .bp-ath{background:var(--bp-bg2);border:1px solid var(--bp-border);border-radius:4px;padding:12px 16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.breadth-panel .bp-ath-item{display:flex;align-items:center;gap:10px}
+.breadth-panel .bp-ath-lbl{font-size:11px;color:var(--bp-muted);font-family:'Share Tech Mono'}
+.breadth-panel .bp-ath-val{font-family:'Orbitron';font-size:13px;font-weight:700}
+.breadth-panel .bp-ath-bdg{font-size:10px;padding:2px 8px;border-radius:2px;font-family:'Share Tech Mono'}
+.breadth-panel .bp-ath-bdg.yes{border:1px solid rgba(46,125,50,0.3)}
+.breadth-panel .bp-ath-bdg.no{border:1px solid rgba(198,40,40,0.2)}
+.breadth-panel .bp-divider{width:1px;height:30px;background:var(--bp-border)}
+.breadth-panel .bp-breadth{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.breadth-panel .bp-card{background:var(--bp-bg2);border:1px solid var(--bp-border);border-radius:4px;padding:14px 16px;position:relative;overflow:hidden}
+.breadth-panel .bp-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.breadth-panel .bp-card.large::before{background:var(--bp-large)}
+.breadth-panel .bp-card.mid::before{background:var(--bp-mid)}
+.breadth-panel .bp-card.small::before{background:var(--bp-small)}
+.breadth-panel .bp-card.bull{border-color:var(--bp-bull);box-shadow:0 0 12px rgba(46,125,50,0.2)}
+.breadth-panel .bp-card.bear{border-color:var(--bp-bear);box-shadow:0 0 12px rgba(198,40,40,0.2)}
+.breadth-panel .bp-card.side{border-color:var(--bp-side);box-shadow:0 0 12px rgba(230,81,0,0.2)}
+.breadth-panel .bp-chead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.breadth-panel .bp-cname{font-family:'Orbitron';font-size:13px;font-weight:700}
+.breadth-panel .bp-cname.large{color:var(--bp-large)}
+.breadth-panel .bp-cname.mid{color:var(--bp-mid)}
+.breadth-panel .bp-cname.small{color:var(--bp-small)}
+.breadth-panel .bp-rbadge{font-family:'Share Tech Mono';font-size:10px;padding:2px 8px;border-radius:2px;font-weight:700;letter-spacing:1px}
+.breadth-panel .bp-rbadge.BULL{border:1px solid rgba(46,125,50,0.3)}
+.breadth-panel .bp-rbadge.BEAR{border:1px solid rgba(198,40,40,0.3)}
+.breadth-panel .bp-rbadge.SIDE{border:1px solid rgba(230,81,0,0.3)}
+.breadth-panel .bp-pct-big{font-family:'Orbitron';font-size:26px;font-weight:900;line-height:1}
+.breadth-panel .bp-pct-big.g{color:var(--bp-bull)}
+.breadth-panel .bp-pct-big.r{color:var(--bp-bear)}
+.breadth-panel .bp-pct-big.y{color:var(--bp-side)}
+.breadth-panel .bp-pct-lbl{font-size:11px;color:var(--bp-muted);margin-top:2px}
+.breadth-panel .bp-chip{font-family:'Share Tech Mono';font-size:11px}
+.breadth-panel .bp-chip.up{color:var(--bp-bull)}
+.breadth-panel .bp-chip.dn{color:var(--bp-bear)}
+.breadth-panel .bp-ptrack{margin-top:10px;height:6px;background:var(--bp-bg3);border-radius:3px;overflow:hidden}
+.breadth-panel .bp-pfill{height:100%;border-radius:3px;transition:width 1s ease}
+.breadth-panel .bp-pfill.g{background:linear-gradient(90deg,var(--bp-bull2),var(--bp-bull))}
+.breadth-panel .bp-pfill.r{background:linear-gradient(90deg,var(--bp-bear2),var(--bp-bear))}
+.breadth-panel .bp-pfill.y{background:linear-gradient(90deg,var(--bp-side2),var(--bp-side))}
+.breadth-panel .bp-chart-box{background:var(--bp-bg2);border:1px solid var(--bp-border);border-radius:4px;padding:16px}
+.breadth-panel .bp-shdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.breadth-panel .bp-stitle{font-family:'Orbitron';font-size:13px;color:var(--bp-accent);letter-spacing:2px}
+.breadth-panel .bp-legend{display:flex;gap:16px}
+.breadth-panel .bp-litem{display:flex;align-items:center;gap:6px;font-size:12px}
+.breadth-panel .bp-ldot{width:10px;height:10px;border-radius:50%}
+.breadth-panel .bp-cwrap{position:relative;height:220px}
+.breadth-panel .bp-rnote{font-family:'Share Tech Mono';font-size:10px;color:var(--bp-muted);margin-top:6px}
+.breadth-panel .bp-strats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.breadth-panel .bp-scard{background:var(--bp-bg2);border:1px solid var(--bp-border);border-radius:4px;padding:14px}
+.breadth-panel .bp-scard.active{border-color:var(--bp-side);box-shadow:0 0 12px rgba(230,81,0,0.15)}
+.breadth-panel .bp-shead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.breadth-panel .bp-sicon{font-size:20px}
+@media(max-width:768px){.breadth-panel .bp-sicon{font-size:16px}}
+.breadth-panel .bp-stitle2{font-family:'Orbitron';font-size:11px;font-weight:700}
+.breadth-panel .bp-stitle2.g{color:var(--bp-bull)}
+.breadth-panel .bp-stitle2.r{color:var(--bp-bear)}
+.breadth-panel .bp-stitle2.y{color:var(--bp-side)}
+.breadth-panel .bp-srule{font-size:12px;color:var(--bp-text);line-height:1.5;margin-bottom:6px;display:flex;gap:6px}
+.breadth-panel .bp-srule::before{content:'▸';color:var(--bp-muted);flex-shrink:0}
+.breadth-panel .bp-psize{margin-top:10px;padding:8px;background:var(--bp-bg3);border-radius:3px}
+.breadth-panel .bp-pslbl{font-size:10px;color:var(--bp-muted)}
+.breadth-panel .bp-psval{font-family:'Orbitron';font-size:13px;font-weight:700}
+.breadth-panel .bp-psval.g{color:var(--bp-bull)}
+.breadth-panel .bp-psval.r{color:var(--bp-bear)}
+.breadth-panel .bp-psval.y{color:var(--bp-side)}
+.breadth-panel .bp-sector{background:var(--bp-bg2);border:1px solid var(--bp-border);border-radius:4px;padding:16px}
+.breadth-panel .bp-sgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:12px}
+.breadth-panel .bp-scard2{background:var(--bp-bg3);border:1px solid var(--bp-border);border-radius:3px;padding:10px 8px;text-align:center;position:relative;overflow:hidden}
+.breadth-panel .bp-scard2:hover{border-color:var(--bp-border2);transform:translateY(-1px)}
+.breadth-panel .bp-scard2.mbag{border-color:var(--bp-side);animation:bpGlow 2s infinite}
+@keyframes bpGlow{0%,100%{box-shadow:0 0 8px rgba(230,81,0,0.2)}50%{box-shadow:0 0 18px rgba(230,81,0,0.4)}}
+.breadth-panel .bp-scard2.leader{border-color:var(--bp-bull);box-shadow:0 0 10px rgba(46,125,50,0.2)}
+.breadth-panel .bp-sname{font-size:10px;color:var(--bp-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.breadth-panel .bp-srsi{font-family:'Orbitron';font-size:18px;font-weight:700;margin:4px 0}
+.breadth-panel .bp-srsi.hot{color:var(--bp-side)}
+.breadth-panel .bp-srsi.lead{color:var(--bp-bull)}
+.breadth-panel .bp-srsi.cool{color:var(--bp-muted)}
+.breadth-panel .bp-srsi.cold{color:var(--bp-bear)}
+.breadth-panel .bp-rbar{height:3px;border-radius:2px;background:var(--bp-bg);margin-top:4px}
+.breadth-panel .bp-rfill{height:100%;border-radius:2px}
+.breadth-panel .bp-stag{font-size:9px;font-family:'Share Tech Mono';padding:1px 5px;border-radius:2px;margin-top:4px;display:inline-block}
+.breadth-panel .bp-rguide{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap}
+.breadth-panel .bp-rzone{display:flex;align-items:center;gap:6px;font-size:11px}
+.breadth-panel .bp-rdot{width:8px;height:8px;border-radius:50%}
+.breadth-panel .bp-macro{background:var(--bp-bg2);border:1px solid var(--bp-border);border-radius:4px;padding:16px}
+.breadth-panel .bp-mgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:12px}
+.breadth-panel .bp-mcard{background:var(--bp-bg3);border:1px solid var(--bp-border);border-radius:3px;padding:10px 12px;text-align:center}
+.breadth-panel .bp-micon{font-size:18px;margin-bottom:4px}
+.breadth-panel .bp-mlbl{font-size:10px;color:var(--bp-muted);text-transform:uppercase;letter-spacing:0.5px}
+.breadth-panel .bp-mval{font-family:'Orbitron';font-size:13px;font-weight:700;margin-top:2px}
+.breadth-panel .bp-mval.pos{color:var(--bp-bull)}
+.breadth-panel .bp-mval.neg{color:var(--bp-bear)}
+.breadth-panel .bp-mval.neu{color:var(--bp-side)}
+.breadth-panel .bp-mtrend{font-size:10px;margin-top:2px}
+.breadth-panel .bp-score{font-family:'Orbitron';font-size:13px;color:var(--bp-muted)}
+.breadth-panel .bp-footer{padding:10px 20px;border-top:1px solid var(--bp-border);display:flex;justify-content:space-between;font-family:'Share Tech Mono';font-size:10px;color:var(--bp-muted)}
+.breadth-panel .bp-recs{background:var(--bp-bg2);border:2px solid var(--bp-side);border-radius:4px;padding:16px}
+.breadth-panel .bp-recs-title{font-family:'Orbitron';font-size:14px;font-weight:700;color:var(--bp-side);letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.breadth-panel .bp-recs-note{font-size:11px;color:var(--bp-muted);font-family:'Share Tech Mono';margin-bottom:10px}
+.breadth-panel .bp-recs-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.breadth-panel .bp-recs-tier{padding:12px;border-radius:4px;background:var(--bp-bg3);border:1px solid var(--bp-border)}
+.breadth-panel .bp-recs-tier-title{font-family:'Orbitron';font-size:12px;font-weight:700;margin-bottom:8px}
+.breadth-panel .bp-recs-tier-title.sbuy{color:var(--bp-bull)}
+.breadth-panel .bp-recs-tier-title.buy{color:var(--bp-large)}
+.breadth-panel .bp-recs-tier-title.watch{color:var(--bp-side)}
+.breadth-panel .bp-recs-item{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;border-radius:3px;margin-bottom:4px;background:rgba(255,255,255,0.03);font-size:12px}
+.breadth-panel .bp-recs-item:last-child{margin-bottom:0}
+.breadth-panel .bp-recs-iname{font-weight:600;color:var(--bp-text)}
+.breadth-panel .bp-recs-isector{font-size:10px;color:var(--bp-muted);font-family:'Share Tech Mono'}
+.breadth-panel .bp-recs-irsi{font-family:'Orbitron';font-size:12px;font-weight:700}
+.breadth-panel .bp-recs-irsi.sbuy{color:var(--bp-side)}
+.breadth-panel .bp-recs-irsi.buy{color:var(--bp-bull)}
+.breadth-panel .bp-recs-empty{padding:20px;text-align:center;font-size:12px;color:var(--bp-muted);font-family:'Share Tech Mono'}
+.breadth-panel .bp-recs-empty strong{color:var(--bp-side)}
+@media(max-width:768px){.breadth-panel .bp-recs-grid{grid-template-columns:1fr}.breadth-panel .bp-recs{padding:10px}.breadth-panel .bp-recs-title{font-size:12px}.breadth-panel .bp-recs-item{font-size:11px}}
+@media(max-width:1200px){.breadth-panel .bp-sgrid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:900px){.breadth-panel .bp-breadth{grid-template-columns:1fr}.breadth-panel .bp-strats{grid-template-columns:1fr}.breadth-panel .bp-mgrid{grid-template-columns:1fr}.breadth-panel .bp-sgrid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:768px){
+  .breadth-panel{border-width:2px;margin:2px}
+  .breadth-panel .bp-header{padding:8px 12px;flex-wrap:wrap;gap:8px}
+  .breadth-panel .bp-h-left{flex-wrap:wrap;gap:6px}
+  .breadth-panel .bp-logo{font-size:14px;letter-spacing:2px}
+  .breadth-panel .bp-sub{font-size:9px}
+  .breadth-panel .bp-main{padding:10px 8px;gap:10px}
+  .breadth-panel .bp-ath{padding:8px 10px;gap:6px}
+  .breadth-panel .bp-ath-item{flex-wrap:wrap;gap:4px}
+  .breadth-panel .bp-ath-lbl{font-size:9px}
+  .breadth-panel .bp-ath-val{font-size:11px}
+  .breadth-panel .bp-ath-bdg{font-size:8px;padding:1px 5px}
+  .breadth-panel .bp-divider{display:none}
+  .breadth-panel .bp-card{padding:10px 12px}
+  .breadth-panel .bp-chead{margin-bottom:6px}
+  .breadth-panel .bp-cname{font-size:11px}
+  .breadth-panel .bp-pct-big{font-size:22px}
+  .breadth-panel .bp-pct-lbl{font-size:10px}
+  .breadth-panel .bp-chip{font-size:10px}
+  .breadth-panel .bp-ptrack{margin-top:6px;height:4px}
+  .breadth-panel .bp-chart-box{padding:10px}
+  .breadth-panel .bp-shdr{flex-direction:column;align-items:flex-start;gap:8px}
+  .breadth-panel .bp-stitle{font-size:11px}
+  .breadth-panel .bp-legend{gap:8px;flex-wrap:wrap}
+  .breadth-panel .bp-litem{font-size:10px}
+  .breadth-panel .bp-cwrap{height:160px}
+  .breadth-panel .bp-rnote{font-size:8px}
+  .breadth-panel .bp-scard{padding:10px}
+  .breadth-panel .bp-shead{gap:6px;margin-bottom:6px}
+  .breadth-panel .bp-srule{font-size:11px}
+  .breadth-panel .bp-pslbl{font-size:9px}
+  .breadth-panel .bp-psval{font-size:12px}
+  .breadth-panel .bp-sector{padding:10px}
+  .breadth-panel .bp-scard2{padding:8px 6px}
+  .breadth-panel .bp-sname{font-size:9px}
+  .breadth-panel .bp-srsi{font-size:15px}
+  .breadth-panel .bp-stag{font-size:8px}
+  .breadth-panel .bp-rguide{gap:8px;margin-top:6px}
+  .breadth-panel .bp-rzone{font-size:9px}
+  .breadth-panel .bp-macro{padding:10px}
+  .breadth-panel .bp-mcard{padding:8px 6px}
+  .breadth-panel .bp-mlbl{font-size:9px}
+  .breadth-panel .bp-mval{font-size:12px}
+  .breadth-panel .bp-mtrend{font-size:9px}
+  .breadth-panel .bp-score{font-size:11px}
+  .breadth-panel .bp-h-right{gap:8px}
+  .breadth-panel .bp-update{font-size:9px}
+  .breadth-panel .bp-vlabel{font-size:20px}
+  .breadth-panel .bp-vtext{font-size:12px}
+  .breadth-panel .bp-vaction{font-size:10px}
+}
+@media(max-width:600px){
+  .breadth-panel{border-width:1px;margin:1px;border-radius:2px}
+  .breadth-panel .bp-header{padding:6px 8px}
+  .breadth-panel .bp-logo{font-size:12px}
+  .breadth-panel .bp-h-right{gap:4px;flex-wrap:wrap;justify-content:flex-end}
+  .breadth-panel .bp-update{font-size:8px}
+  .breadth-panel .bp-main{padding:6px 4px;gap:6px}
+  .breadth-panel .bp-ath{gap:4px;padding:6px 8px}
+  .breadth-panel .bp-card{padding:8px}
+  .breadth-panel .bp-pct-big{font-size:18px}
+  .breadth-panel .bp-verdict{padding:8px 10px;flex-wrap:wrap;gap:8px}
+  .breadth-panel .bp-vlabel{font-size:16px}
+  .breadth-panel .bp-vtext{font-size:11px}
+  .breadth-panel .bp-vaction{font-size:9px}
+  .breadth-panel .bp-cwrap{height:140px}
+  .breadth-panel .bp-stitle{font-size:10px}
+  .breadth-panel .bp-sgrid{grid-template-columns:repeat(2,1fr)!important}
+  .breadth-panel .bp-scard2{padding:6px 4px}
+  .breadth-panel .bp-srsi{font-size:14px}
+  .breadth-panel .bp-mgrid{grid-template-columns:repeat(2,1fr)!important}
+  .breadth-panel .bp-footer{flex-direction:column;gap:4px;text-align:center;font-size:9px;padding:6px 10px}
+}
+@media(max-width:480px){
+  .breadth-panel .bp-logo{font-size:11px;letter-spacing:1px}
+  .breadth-panel .bp-breadth{grid-template-columns:1fr!important}
+  .breadth-panel .bp-strats{grid-template-columns:1fr!important}
+  .breadth-panel .bp-sgrid{grid-template-columns:repeat(2,1fr)!important}
+  .breadth-panel .bp-cwrap{height:120px}
+  .breadth-panel .bp-pct-big{font-size:16px}
+  .breadth-panel .bp-card{padding:6px}
+  .breadth-panel .bp-legend{flex-direction:column;gap:2px}
+}
+/* ── 2.13 TTF RSI Weekly Panel (scoped with #tab-ttf) ── */
+#tab-ttf .ttf-panel * { margin:0; padding:0; box-sizing:border-box; }
+#tab-ttf .ttf-panel { font-family:'Segoe UI',Arial,sans-serif; background:#f5f0e8; color:#000; padding:20px; min-height:100vh; }
+#tab-ttf .ttf-panel h1 { font-size:22px; margin-bottom:5px; color:#000; }
+#tab-ttf .ttf-panel .subtitle { font-size:13px; color:#222; margin-bottom:20px; }
+#tab-ttf .ttf-panel .controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:20px; }
+#tab-ttf .ttf-panel .btn { background:#d4880f; color:#000; border:none; padding:8px 20px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600; }
+#tab-ttf .ttf-panel .btn:hover { background:#e6a020; }
+#tab-ttf .ttf-panel .btn:disabled { opacity:0.5; cursor:not-allowed; }
+#tab-ttf .ttf-panel .btn-reset { background:#f0ebe0; border:1px solid #d0c8b8; color:#000; }
+#tab-ttf .ttf-panel .btn-reset:hover { background:#e0d8c8; }
+#tab-ttf .ttf-panel .status { font-size:13px; color:#222; margin-bottom:10px; padding:8px 0; }
+#tab-ttf .ttf-panel .status.error { color:#cc3344; }
+#tab-ttf .ttf-panel .status.success { color:#1a8a4a; }
+#tab-ttf .ttf-panel .legend { display:flex; gap:16px; flex-wrap:wrap; margin:12px 0; font-size:11px; }
+#tab-ttf .ttf-panel .legend-item { display:flex; align-items:center; gap:4px; color:#000; }
+#tab-ttf .ttf-panel .legend-swatch { width:14px; height:14px; border-radius:3px; border:1px solid #d0c8b8; display:inline-block; }
+#tab-ttf .ttf-panel .table-wrap { overflow-x:auto; border:1px solid #d0c8b8; border-radius:8px; }
+#tab-ttf .ttf-panel table { border-collapse:separate; border-spacing:0; font-size:12px; width:100%; min-width:800px; table-layout:fixed; }
+#tab-ttf .ttf-panel thead { z-index:4; }
+#tab-ttf .ttf-panel thead th { background:#faf7f0; color:#000; padding:6px 4px; border:1px solid #d0c8b8; text-align:center; font-weight:600; font-size:10px; white-space:nowrap; }
+#tab-ttf .ttf-panel thead th.group-header { background:#f0ebe0; color:#d4880f; }
+#tab-ttf .ttf-panel thead th.group-header:first-child { min-width:30px; }
+#tab-ttf .ttf-panel thead th.group-header:nth-child(2) { min-width:40px; }
+#tab-ttf .ttf-panel thead th.sub-header { background:#faf7f0; font-weight:400; font-size:10px; color:#222 !important; padding:4px 3px; overflow:hidden; }
+#tab-ttf .ttf-panel tbody td { padding:6px 4px; border:1px solid #d0c8b8; text-align:center; white-space:nowrap; color:#000; }
+#tab-ttf .ttf-panel tbody td.idx { font-weight:600; text-align:left; padding-left:4px; color:#000; font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:170px; width:170px; }
+#tab-ttf .ttf-panel tbody tr:hover td { background:#f0ebe0; }
+#tab-ttf .ttf-panel tbody tr:hover td.idx { background:#f0ebe0; }
+#tab-ttf .ttf-panel .empty-row td { color:#888; font-style:italic; text-align:center; }
+#tab-ttf .ttf-panel .rsi-cell { font-weight:600; font-size:12px; text-align:center; overflow:hidden; }
+#tab-ttf .ttf-panel .zone-45-50 { color:#000; }
+#tab-ttf .ttf-panel .zone-eq50 { background:#d29922 !important; color:#000; }
+#tab-ttf .ttf-panel .zone-gt50 { background:#1a8a4a !important; color:#fff; }
+#tab-ttf .ttf-panel .zone-gte60 { background:#0d6b30 !important; color:#fff; font-weight:700; }
+#tab-ttf .ttf-panel .zone-lt45 { background:#cc3344 !important; color:#fff; }
+#tab-ttf .ttf-panel .daily-green { color:#1a8a4a; font-weight:600; }
+#tab-ttf .ttf-panel .daily-darkgreen { color:#0d6b30; font-weight:700; }
+#tab-ttf .ttf-panel .daily-neutral { color:#000; }
+@keyframes ttf-spin { to { transform:rotate(360deg); } }
+#tab-ttf .ttf-panel .spinner { display:inline-block; width:14px; height:14px; border:2px solid #d0c8b8; border-top-color:#d4880f; border-radius:50%; animation:ttf-spin .6s linear infinite; vertical-align:middle; margin-right:6px; }
+#tab-ttf .ttf-panel footer { margin-top:16px; font-size:11px; color:#666; text-align:center; }
+#tab-ttf .ttf-panel #debugModal { display:none; position:fixed; top:20px; left:20px; right:20px; bottom:20px; background:#faf7f0; border:1px solid #d0c8b8; border-radius:8px; z-index:999; overflow:auto; padding:16px; }
+#tab-ttf .ttf-panel #debugTitle { color:#d4880f; font-size:16px; }
+#tab-ttf .ttf-panel #debugContent { font-family:monospace; font-size:12px; color:#000; white-space:pre-wrap; line-height:1.6; }
+/* ── TTF: NO column freeze — all columns scroll freely ── */
+/* Override any global sticky-column rules for this table */
+#tab-ttf .ttf-panel thead th,
+#tab-ttf .ttf-panel tbody td { position:static !important; left:auto !important; z-index:auto !important; box-shadow:none !important; }
+/* sticky top for thead rows only — re-apply after override */
+#tab-ttf .ttf-panel thead tr:nth-child(1) th { position:sticky !important; top:0; z-index:4 !important; }
+#tab-ttf .ttf-panel thead tr:nth-child(2) th { position:sticky !important; top:28px; z-index:3 !important; background:#faf7f0; }
+#tab-ttf .ttf-panel thead tr:nth-child(3) th { position:sticky !important; top:50px; z-index:3 !important; background:#faf7f0; }
+#tab-ttf .ttf-panel tbody tr:hover td { background:#f0ebe0 !important; }
+/* Ensure tbody row 1 is never hidden under the sticky rowspan-3 thead */
+#tab-ttf .ttf-panel tbody { position:relative; z-index:1; }
+/* ── Mobile: TTF responsive (≤600px) ── */
+@media(max-width:600px) {
+  #tab-ttf .ttf-panel { padding:10px; }
+  #tab-ttf .ttf-panel h1 { font-size:16px; }
+  #tab-ttf .ttf-panel .subtitle { font-size:11px; margin-bottom:12px; }
+  #tab-ttf .ttf-panel .controls { flex-direction:column; align-items:stretch; gap:8px; }
+  #tab-ttf .ttf-panel .btn { padding:10px 16px; font-size:12px; text-align:center; }
+  #tab-ttf .ttf-panel .controls label { font-size:11px; }
+  #tab-ttf .ttf-panel .legend { font-size:10px; gap:6px; }
+  #tab-ttf .ttf-panel .table-wrap { border-radius:4px; }
+  #tab-ttf .ttf-panel tbody td { padding:4px 3px; font-size:10px; }
+  #tab-ttf .ttf-panel tbody td.idx { font-size:10px; max-width:120px; width:120px; }
+  #tab-ttf .ttf-panel thead th { padding:4px 2px; font-size:9px; }
+  #tab-ttf .ttf-panel .rsi-cell { font-size:10px; }
+  #tab-ttf .ttf-panel footer { font-size:10px; }
+  /* sub-header row top offsets on mobile */
+  #tab-ttf .ttf-panel thead tr:nth-child(2) th { top:22px!important; }
+  #tab-ttf .ttf-panel thead tr:nth-child(3) th { top:40px!important; }
+}
+@media(max-width:480px) {
+  #tab-ttf .ttf-panel { padding:6px; }
+  #tab-ttf .ttf-panel h1 { font-size:14px; }
+  #tab-ttf .ttf-panel tbody td.idx { max-width:90px; width:90px; font-size:9px; }
+  #tab-ttf .ttf-panel thead th { font-size:8px; padding:3px 1px; }
+  #tab-ttf .ttf-panel .subtitle { font-size:10px; }
+  #tab-ttf .ttf-panel .legend { font-size:9px; gap:4px; }
+}
+</style>
+</head>
+<body>
+<!-- ════════════════════════════════════════════ -->
+<!--  3. HTML: 3-TAB PAGE STRUCTURE             -->
+<!-- ════════════════════════════════════════════ -->
+<!-- ── 3.1 Tab Navigation ── -->
+<div class="app-tabs">
+  <button class="tab-btn active" onclick="switchTab('breadth')">📊 Market Breadth</button>
+  <button class="tab-btn" onclick="switchTab('scanner')">⚡ Scanner</button>
+  <button class="tab-btn" onclick="switchTab('ttf')">🔍 TTF RSI Weekly</button>
+</div>
+<!-- ── 3.2 Market Breadth Panel (active by default) ── -->
+<div id="tab-breadth" class="tab-panel active breadth-panel">
+
+<div class="bp-header">
+  <div class="bp-h-left">
+    <div class="bp-logo">MARKET<span>BREADTH</span></div>
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      <div class="bp-sub">NSE BREADTH SCANNER v2.0 — 40W EMA REGIME CLASSIFIER</div>
+      <div class="bp-sub">LARGE · MID · SMALL CAP | SECTOR RSI | MACRO OVERLAY</div>
+    </div>
+  </div>
+  <div class="bp-h-right">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="bp-live"></div>
+      <div class="bp-update">LAST UPDATE: <span id="bpUpdateTime">--:--:--</span></div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-family:'Orbitron';font-size:11px;color:var(--bp-accent);">NIFTY 50</div>
+      <div style="font-family:'Orbitron';font-weight:700;" id="bpNiftyVal">23,847</div>
+    </div>
+  </div>
+</div>
+
+<div class="bp-main">
+
+  <div class="bp-verdict side" id="bpVerdict">
+    <div>
+      <div class="bp-vtext" id="bpVtext">⚡ OVERALL MARKET: <span style="color:var(--bp-side);font-weight:700;">SIDEWAYS TRANSITION</span></div>
+      <div class="bp-vaction" id="bpVaction">STRATEGY: Reduce new positions. Wait for breadth confirmation above 60%.</div>
+    </div>
+    <div class="bp-vlabel" id="bpVlabel" style="color:var(--bp-side);">SIDEWAYS</div>
+  </div>
+
+  <div class="bp-ath">
+    <div class="bp-ath-item"><div class="bp-ath-lbl">NIFTY 50 ATH</div><div class="bp-ath-val" style="color:var(--bp-bull);">24,198</div><div class="bp-ath-bdg no">-1.45% BELOW</div></div>
+    <div class="bp-divider"></div>
+    <div class="bp-ath-item"><div class="bp-ath-lbl">NIFTY MIDCAP ATH</div><div class="bp-ath-val" style="color:var(--bp-mid);">53,742</div><div class="bp-ath-bdg no">-3.2% BELOW</div></div>
+    <div class="bp-divider"></div>
+    <div class="bp-ath-item"><div class="bp-ath-lbl">NIFTY SMALLCAP ATH</div><div class="bp-ath-val" style="color:var(--bp-small);">17,290</div><div class="bp-ath-bdg no">-8.1% BELOW</div></div>
+    <div class="bp-divider"></div>
+    <div class="bp-ath-item"><div class="bp-ath-lbl">BULLISH TRIGGER</div><div style="font-size:11px;color:var(--bp-muted);font-family:'Share Tech Mono';">All 3 ATH + All Breadth >60% + Macro Green</div><div class="bp-ath-bdg no">NOT YET</div></div>
+  </div>
+
+  <div class="bp-breadth" id="bpCards"></div>
+
+  <div class="bp-chart-box">
+    <div class="bp-shdr">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="bp-stitle">% STOCKS ABOVE 40W EMA</div>
+      <div style="font-size:9px;padding:2px 6px;border-radius:2px;background:rgba(30,30,30,0.04);color:var(--bp-muted);border:1px solid var(--bp-border);font-family:'Share Tech Mono';">13 WEEKS HISTORY</div>
+      </div>
+      <div class="bp-legend">
+        <div class="bp-litem"><div class="bp-ldot" style="background:var(--bp-large);"></div><span style="color:var(--bp-large);">LARGECAP</span></div>
+        <div class="bp-litem"><div class="bp-ldot" style="background:var(--bp-mid);"></div><span style="color:var(--bp-mid);">MIDCAP</span></div>
+        <div class="bp-litem"><div class="bp-ldot" style="background:var(--bp-small);"></div><span style="color:var(--bp-small);">SMALLCAP</span></div>
+      </div>
+    </div>
+    <div class="bp-cwrap"><canvas id="bpChart"></canvas></div>
+    <div class="bp-rnote">── 60% = BULL threshold &nbsp;|&nbsp; ── 40% = BEAR threshold &nbsp;|&nbsp; Shaded zone = SIDEWAYS region</div>
+  </div>
+
+  <div class="bp-strats" id="bpStrats"></div>
+
+  <div class="bp-sector">
+    <div class="bp-shdr">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="bp-stitle">SECTOR RSI SCANNER</div>
+        <div style="font-size:9px;padding:2px 6px;border-radius:2px;background:rgba(30,30,30,0.04);color:var(--bp-muted);border:1px solid var(--bp-border);font-family:'Share Tech Mono';">WEEKLY TF · RSI 14 + SMA 14</div>
+      </div>
+      <div class="bp-rguide">
+        <div class="bp-rzone"><div class="bp-rdot" style="background:var(--bp-side);"></div><span style="color:var(--bp-side);">70–85 MULTIBAGGER</span></div>
+        <div class="bp-rzone"><div class="bp-rdot" style="background:var(--bp-bull);"></div><span style="color:var(--bp-bull);">65–70 LEADER</span></div>
+        <div class="bp-rzone"><div class="bp-rdot" style="background:var(--bp-accent);"></div><span style="color:var(--bp-accent);">50–65 WATCH</span></div>
+        <div class="bp-rzone"><div class="bp-rdot" style="background:var(--bp-bear);"></div><span style="color:var(--bp-bear);">&lt;50 AVOID</span></div>
+      </div>
+    </div>
+    <div class="bp-sgrid" id="bpSGrid"></div>
+  </div>
+
+  <div class="bp-macro">
+    <div class="bp-shdr">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="bp-stitle">MACRO INDICATORS</div>
+        <div style="font-size:9px;padding:2px 6px;border-radius:2px;background:rgba(30,30,30,0.04);color:var(--bp-muted);border:1px solid var(--bp-border);font-family:'Share Tech Mono';">BULLISH CONFLUENCE CHECK</div>
+      </div>
+      <div class="bp-score" id="bpScore">MACRO SCORE: <span>3/5</span></div>
+    </div>
+    <div class="bp-mgrid" id="bpMGrid"></div>
+  </div>
+
+  <!-- RECOMMENDATIONS -->
+  <div class="bp-recs" id="bpRecs">
+    <div class="bp-recs-title">📋 Recommended Indices for Investing Based on Market Breadth</div>
+    <div class="bp-recs-note" id="bpRecsNote">Sector RSI analysis mapped to NSE indices — refresh after Lie Detector scan for enriched % Regime A data</div>
+    <div class="bp-recs-grid" id="bpRecsGrid">
+      <div class="bp-recs-empty">Loading recommendations…</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="bp-footer">
+  <div>NSE MARKET BREADTH SCANNER · DEMO MODE — Replace data arrays with live API calls</div>
+  <div id="bpFooterTime"></div>
+</div>
+
+</div>
+<!-- ── 3.3 Lie Detector V6 (React mount point) ── -->
+<div id="tab-scanner" class="tab-panel">
+<div id="root"></div>
+</div>
+
+<!-- ── 3.4 TTF RSI Weekly Scanner Panel ── -->
+<div id="tab-ttf" class="tab-panel">
+<div class="ttf-panel">
+<h1>&#9650; TTF RSI Weekly Scanner</h1>
+<p class="subtitle">NSE Daily OHLC &middot; RSI(4,6,8) Weekly Zones + Daily</p>
+<div class="controls">
+  <button class="btn" id="scanBtn">&#9654; Step 2 - Scan</button>
+  <button class="btn btn-reset" id="resetBtn">&#8635; Reset</button>
+  <label><input type="checkbox" id="rsi8Filter" checked> RSI(8) Weekly &ge; 45 only</label>
+</div>
+<div class="status" id="status">Ready.</div>
+<div class="legend">
+  <span class="legend-item"><span class="legend-swatch" style="background:#238636;"></span> RSI &gt; 50</span>
+  <span class="legend-item"><span class="legend-swatch" style="background:#d29922;"></span> RSI = 50</span>
+  <span class="legend-item"><span class="legend-swatch" style="background:#da3633;"></span> RSI &lt; 45</span>
+  <span class="legend-item"><span class="legend-swatch" style="background:#1a7f37;"></span> RSI &ge; 60</span>
+  <span class="legend-item"><span class="legend-swatch" style="background:transparent;border-color:#484f58;"></span> RSI 45-50</span>
+  <span class="legend-item" style="margin-left:16px;color:#3fb950;">&bull; Daily RSI &gt; 50</span>
+  <span class="legend-item" style="color:#1a7f37;">&bull; Daily RSI &gt; 60</span>
+</div>
+<div class="table-wrap"><table id="resultTable">
+  <thead id="tableHead"></thead>
+  <tbody id="tableBody"></tbody>
+</table></div>
+<footer>Data: NSE Daily OHLC files &middot; RSI Wilder <span id="ts"></span></footer>
+
+<div id="debugModal">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <h2 id="debugTitle"></h2>
+    <button onclick="this.closest('#debugModal').style.display='none'" style="background:#f0ebe0;color:#000;border:1px solid #d0c8b8;padding:4px 12px;border-radius:4px;cursor:pointer;">Close</button>
+  </div>
+  <pre id="debugContent"></pre>
+</div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!--  4. LIE DETECTOR V6 (REACT SCANNER)       -->
+<!-- ════════════════════════════════════════════ -->
+<script type="text/babel">
+// ── 4.1 React Imports ──
+const { useState, useRef, useMemo, useEffect } = React;
+
+// ── 4.2 Configuration ──
+const CORS = 'https://cors-proxy-xi-ten.vercel.app/api/proxy?url=';
+const NSE_API = 'https://www.nseindia.com/api/allIndices';
+
+function normalize(n) { return (n||'').replace(/[^a-z0-9]/gi,'').toLowerCase(); }
+
+const YAHOO = {
+  nifty50:"^NSEI", niftynext50:"^NIFTYNXT50", nifty100:"^CNX100", nifty200:"^CNX200",
+  nifty500:"^CNX500", niftymidcap50:"^CNXMIDCAP50", niftymidcap100:"^NSMIDCP100",
+  niftymidcap150:"^CNXMIDCAP150", niftymidselect:"^NIFTYMIDSEL",
+  niftysmallcap100:"^CNXSC", niftysmallcap50:"^CNXSC50", niftysmallcap250:"^CNXSC250",
+  niftymidsmallcap400:"^CNXMIDSMALL400", niftylargemidcap250:"^CNXLARGEMID250",
+  niftymicrocap250:"^NIFTYMICROCAP250", niftytotalmarket:"^NIFTYTOTALMKT",
+  niftybank:"^NSEBANK", niftypsubank:"^CNXPSUBNK", niftyprivatebank:"^CNXPVTBNK",
+  niftyfinancialservices:"^CNXFINANCE", niftyfinancialservices2550:"^CNXFIN2550",
+  niftyit:"^CNXIT", niftyauto:"^CNXAUTO", niftypharma:"^CNXPHARMA",
+  niftyhealthcareindex:"^NIFTYHC", niftyfmcg:"^CNXFMCG",
+  niftymetal:"^CNXMETAL", niftyrealty:"^CNXREALTY", niftyenergy:"^CNXENERGY",
+  niftyoilgas:"^CNXOILGAS", niftycpse:"^CNXCPSE", niftypse:"^CNXPSE",
+  niftymedia:"^CNXMEDIA", niftyinfrastructure:"^CNXINFRA",
+  niftyservicessector:"^CNXSERVICE", niftymnc:"^CNXMNC",
+  niftycommodities:"^CNXCOMMODITIES", indiavix:"^INDIAVIX",
+  niftyalpha50:"^CNXALPHA50", nifty50equalweight:"^NIFTY50EW",
+  nifty100equalweight:"^CNX100EW", nifty100qualty30:"^NIFTY100QU30",
+  nifty100lowvolatility30:"^NIFTY100LV30",
+  nifty200quality30:"^NIFTY200QU30", nifty200momentum30:"^NIFTY200MO30",
+  nifty200alpha30:"^NIFTY200AL30", nifty200value30:"^NIFTY200VA30",
+  nifty50value20:"^NIFTY50VA20",
+  niftyconsumerd:"^CNXCONSUMER", niftyconsumption:"^CNXCONSUMPTION",
+};
+
+// ── 4.3 RSI Calculation (Wilder Smoothing) ──
+function calcRSI(closes, period) {
+  const v = closes.filter(x => x != null && !isNaN(x));
+  if (v.length < period + 1) return [];
+  const rsis = []; let gains = 0, losses = 0;
+  for (let i = 1; i <= period; i++) {
+    const d = v[i] - v[i - 1];
+    if (d > 0) gains += d; else losses -= d;
+  }
+  let ag = gains / period, al = losses / period;
+  rsis.push(al === 0 ? 100 : parseFloat((100 - 100 / (1 + ag / al)).toFixed(2)));
+  for (let i = period + 1; i < v.length; i++) {
+    const d = v[i] - v[i - 1];
+    ag = (ag * (period - 1) + Math.max(d, 0)) / period;
+    al = (al * (period - 1) + Math.abs(Math.min(d, 0))) / period;
+    rsis.push(al === 0 ? 100 : parseFloat((100 - 100 / (1 + ag / al)).toFixed(2)));
+  }
+  return rsis;
+}
+
+function calcWMA(data, period) {
+  if (!data || data.length < period) return null;
+  const ws = (period * (period + 1)) / 2;
+  const sl = data.slice(-period); let sum = 0;
+  for (let i = 0; i < period; i++) sum += sl[i] * (i + 1);
+  return parseFloat((sum / ws).toFixed(2));
+}
+
+function computeRegime(wRsi, price, wma20Price) {
+  if (wRsi == null) return null;
+  if (wRsi >= 50 && price && (!wma20Price || price > wma20Price)) return "A";
+  if (wRsi >= 40 && wRsi < 50) return "B";
+  return "C";
+}
+
+function genTradingDays(n) {
+  const days = []; const d = new Date();
+  while (days.length < n) {
+    if (d.getDay() !== 0 && d.getDay() !== 6) days.push(new Date(d));
+    d.setDate(d.getDate() - 1);
+  }
+  return days;
+}
+
+function fmtDDMMYYYY(d) {
+  const pad = v => String(v).padStart(2, '0');
+  return `${pad(d.getDate())}${pad(d.getMonth()+1)}${d.getFullYear()}`;
+}
+
+function computeAction(regime, dRsi) {
+  if (regime === "A" && dRsi >= 40 && dRsi <= 50) return { action: "BUY", rec: "STRIKE — Optimal Entry" };
+  if (regime === "A" && dRsi > 70) return { action: "HOLD", rec: "OVERHEATED — Wait for daily dip" };
+  if (regime === "B") return { action: "REDUCE", rec: "TRAP — Fatigue" };
+  return { action: "SELL", rec: "AVOID — Trust Break" };
+}
+
+function runExecutionTree(r, vixPrice, period) {
+  if (!r || !r['wRsi'+period]) return null;
+  if (!(r['wRsi'+period] >= 50 && (!r.wma20Price || r.price > r.wma20Price)))
+    return { phase: 1, verdict: "ABORT", label: "ABORT", detail: r.wma20Price ? "W-RSI("+period+") < 50 or Price below 20WMA" : "W-RSI("+period+") < 50", color: "red" };
+  if (!r.dRsi4 || !r.dRsi8 || !r.dRsi14)
+    return { phase: 2, verdict: "NO DATA", label: "NO DATA", detail: "Daily RSI insufficient", color: "dim" };
+  const inZ = v => v >= 40 && v <= 50;
+  const ok = [inZ(r.dRsi4), inZ(r.dRsi8), inZ(r.dRsi14)];
+  const cnt = ok.filter(Boolean).length;
+  if (!ok.every(Boolean)) {
+    if (cnt >= 1) return { phase: 3, verdict: "NEAR MISS", label: "NEAR MISS", detail: `D-RSI ${r.dRsi4}/${r.dRsi8}/${r.dRsi14} — ${cnt}/3 in zone`, color: "amber" };
+    return { phase: 3, verdict: "NOT READY", label: "NOT READY", detail: `D-RSI ${r.dRsi4}/${r.dRsi8}/${r.dRsi14} not in zone`, color: "dim" };
+  }
+  const td = [];
+  if (r['wRsi'+period] >= 50 && r['wRsi'+period] <= 52) td.push("TD1: W-RSI("+period+") barely holding (" + r['wRsi'+period] + ")");
+  if (r.wma20Price && r.price < r.wma20Price) td.push("TD2: Price below 20WMA");
+  if (r.divergence) td.push("TD3: RSI(4) rising below 20WMA");
+  if (vixPrice && vixPrice > 20) td.push("TD4: VIX > 20 (" + vixPrice.toFixed(1) + ")");
+  if (td.length) return { phase: 5, verdict: "FAKE SUPPORT", label: "FAKE SUPPORT", detail: td.join(" | "), color: "red" };
+  return { phase: 5, verdict: "VERIFIED STRIKE", label: "VERIFIED STRIKE", detail: "All 3 D-RSI in zone. No trapdoors.", color: "green" };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 4.4 HA BAND ADD-ON (V3D) — Heiken Ashi + 8 SMA Band + 21 SMA
+// Uses daily close + open/high/low data already fetched for RSI
+// ═══════════════════════════════════════════════════════════════
+
+function calcSMA(arr, period) {
+  if (!arr || arr.length < period) return null;
+  const sl = arr.slice(-period);
+  return sl.reduce((a, b) => a + b, 0) / period;
+}
+
+function computeHACandles(closes) {
+  // Close-only fallback: HA_close = close, HA_open = avg of prev two closes
+  if (!closes || closes.length < 3) return null;
+  const haCloses = closes.map(c => c); // HA close ≈ actual close (no OHLC)
+  const haOpens = [closes[0]];
+  for (let i = 1; i < closes.length; i++) {
+    haOpens.push((haOpens[i-1] + haCloses[i-1]) / 2);
+  }
+  return { haCloses, haOpens };
+}
+
+function computeHABandSignal(row, vixPrice) {
+  // Needs at least 21 daily closes for 21 SMA Low (band anchor)
+  const closes = row._dailyCloses;
+  if (!closes || closes.length < 22) return null;
+
+  const ha = computeHACandles(closes);
+  if (!ha) return null;
+
+  const { haCloses, haOpens } = ha;
+  const n = haCloses.length;
+
+  // Current and previous HA candle
+  const haCurClose = haCloses[n - 1];
+  const haCurOpen  = haOpens[n - 1];
+  const haPrevClose = haCloses[n - 2];
+  const haPrevOpen  = haOpens[n - 2];
+
+  const haBull     = haCurClose >= haCurOpen;
+  const haPrevBull = haPrevClose >= haPrevOpen;
+
+  // 8 SMA of closes (proxy for SMA High/Low band using closes)
+  // Since we only have closes (no OHLC), we use ±0.5% of SMA as band width approximation
+  const sma8 = calcSMA(haCloses, 8);
+  const sma21 = calcSMA(haCloses, 21);
+  if (sma8 == null || sma21 == null) return null;
+
+  const bandWidth = sma8 * 0.005; // 0.5% of SMA8 as band half-width
+  const smaHigh = sma8 + bandWidth;   // 8 SMA High proxy
+  const smaLow  = sma8 - bandWidth;   // 8 SMA Low proxy
+
+  // Zone classification
+  const aboveBand  = haCurClose > smaHigh;
+  const insideBand = haCurClose >= smaLow && haCurClose <= smaHigh;
+  const belowBand  = haCurClose < smaLow && haCurClose > sma21;
+  const belowAnchor = haCurClose < sma21;
+
+  let zone, zoneClass;
+  if (aboveBand)   { zone = "BULL";      zoneClass = "green"; }
+  else if (insideBand)  { zone = "CAUTION";  zoneClass = "amber"; }
+  else if (belowBand)   { zone = "BEAR";     zoneClass = "red"; }
+  else                  { zone = "BREAKDOWN";zoneClass = "red"; }
+
+  // ── SIGNAL LOGIC ──
+  let signal = null;
+  let signalClass = "neutral";
+  const reasons = [];
+
+  // BUY signals
+  const buyTrendEntry  = haBull && aboveBand && !haPrevBull;
+  const buyDeep        = haBull && haCurClose > smaLow && haPrevClose <= sma21 * 1.005;
+
+  // SELL signals
+  const sellWeak       = !haBull && insideBand && haPrevBull;
+  const sellBreakdown  = !haBull && haCurClose < smaLow;
+  const sellAnchor     = !haBull && belowAnchor;
+
+  if (sellAnchor) {
+    signal = "STRONG SELL";
+    signalClass = "sell";
+    reasons.push("HA red · Closed below 21 SMA anchor → Trust break");
+    reasons.push(`Price ${row.price?.toFixed(0)} | Anchor ${sma21.toFixed(0)}`);
+  } else if (sellBreakdown) {
+    signal = "SELL";
+    signalClass = "sell";
+    reasons.push("HA red · Closed below 8 SMA Band → Bear zone");
+    reasons.push(`SMA8 band floor: ${smaLow.toFixed(0)}`);
+    if (row.dRsi4 && row.dRsi4 < 40) reasons.push("D-RSI(4) confirming weakness: " + row.dRsi4?.toFixed(1));
+  } else if (sellWeak) {
+    signal = "CAUTION";
+    signalClass = "watch";
+    reasons.push("HA turned red · Re-entered 8 SMA band from above → Momentum fading");
+    if (row.dRsi14 && row.dRsi14 > 60) reasons.push("D-RSI(14) still elevated (" + row.dRsi14?.toFixed(1) + ") — may recover");
+  } else if (buyDeep) {
+    signal = "BUY";
+    signalClass = "buy";
+    reasons.push("HA green · Deep pullback to 21 SMA anchor, price recovering → High R:R entry");
+    reasons.push(`Anchor: ${sma21.toFixed(0)} | D-RSI zone: ${row.dRsi4?.toFixed(1) ?? '–'}/${row.dRsi8?.toFixed(1) ?? '–'}`);
+  } else if (buyTrendEntry) {
+    signal = "BUY";
+    signalClass = "buy";
+    reasons.push("HA turned green · Reclaimed above 8 SMA band → Trend resumption");
+    if (row.dRsi4 >= 40 && row.dRsi4 <= 50) reasons.push("D-RSI(4) in optimal strike zone: " + row.dRsi4?.toFixed(1));
+    if (row.regime === 'A') reasons.push("Regime A confirmed — high probability setup");
+  } else if (haBull && aboveBand) {
+    signal = "HOLD";
+    signalClass = "buy";
+    reasons.push("HA green · Price riding above 8 SMA band → Trend intact, hold position");
+    if (row.dRsi4 > 70) reasons.push("⚠ D-RSI(4) overheated (" + row.dRsi4?.toFixed(1) + ") — trail stop advised");
+    else reasons.push(`SMA8: ${sma8.toFixed(0)} | 21 SMA: ${sma21.toFixed(0)}`);
+  } else if (!haBull && insideBand) {
+    signal = "WATCH";
+    signalClass = "watch";
+    reasons.push("HA red inside band → Consolidation / indecision zone");
+    reasons.push(`Band: ${smaLow.toFixed(0)}–${smaHigh.toFixed(0)} | Wait for breakout direction`);
+  } else {
+    // Default based on zone
+    if (aboveBand && haBull) {
+      signal = "HOLD"; signalClass = "buy";
+      reasons.push("Above band with green HA — trend intact");
+    } else if (belowAnchor) {
+      signal = "AVOID"; signalClass = "sell";
+      reasons.push("Below 21 SMA anchor — avoid new longs");
+    } else {
+      signal = "NEUTRAL"; signalClass = "neutral";
+      reasons.push("No clear HA band signal — insufficient pattern");
+    }
+  }
+
+  // Extra confluences
+  if (row.divergence && (signalClass === "buy")) {
+    reasons.push("✓ RSI divergence detected (bullish)");
+  }
+  if (vixPrice && vixPrice > 20 && signalClass === "buy") {
+    reasons.push(`⚠ VIX elevated (${vixPrice?.toFixed(1)}) — size down`);
+  }
+
+  return {
+    signal,
+    signalClass,
+    zone,
+    zoneClass,
+    sma8: sma8.toFixed(0),
+    sma21: sma21.toFixed(0),
+    haBull,
+    reason: reasons.join(" · ")
+  };
+}
+
+function Pill({v,logic}) { return <span className={`pill pill-${logic||v}`}>{v}</span>; }
+function ConfPill({val}) {
+  const cls = `conf-pill ${val == null ? '' : val >= 50 ? 'rsi-green' : val >= 40 ? 'rsi-amber' : 'rsi-red'}`;
+  return <span className={cls}>{val ?? "—"}</span>;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 4.5 Scanner React Component — State, Logic, Rendering
+// ═══════════════════════════════════════════════════════════════
+const Scanner = () => {
+  const [phase, setPhase] = useState('init');
+  const [progress, setProgress] = useState({ done: 0, total: 0, label: "" });
+  const [results, setResults] = useState({});
+  const [nseData, setNseData] = useState([]);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [regimeFilter, setRegimeFilter] = useState("ALL");
+  const [phaseFilter, setPhaseFilter] = useState("ALL");
+  const [catFilter, setCatFilter] = useState("ALL");
+  const [baFilter, setBaFilter] = useState(null);
+  const [error, setError] = useState(null);
+  const [dataSource, setDataSource] = useState(null);
+  const stopRef = useRef(false);
+  const autoRef = useRef(null);
+  const baStopRef = useRef(false);
+  const tableWrapRef = useRef(null);
+  const topScrollRef = useRef(null);
+  const [basePeriod, setBasePeriod] = useState(8);
+  const [watchlist, setWatchlist] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('ld_scanner_watchlist') || '[]'); } catch(_) { return []; }
+  });
+  const [showWatchlist, setShowWatchlist] = useState(false);
+  const [auditModal, setAuditModal] = useState({ show: false, loading: false, name: '', result: '', error: '' });
+
+  const [sortConfig, setSortConfig] = useState({ key: 'regime', direction: 'asc' });
+  const [sortField1, setSortField1] = useState('');
+  const [sortDir1, setSortDir1] = useState('asc');
+  const [sortField2, setSortField2] = useState('');
+  const [sortDir2, setSortDir2] = useState('asc');
+  const [sortField3, setSortField3] = useState('');
+  const [sortDir3, setSortDir3] = useState('asc');
+  const [baResults, setBaResults] = useState({});
+
+  // Restore cached snapshot on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('ld_scanner_cache');
+      if (raw) {
+        const snap = JSON.parse(raw);
+        if (snap.results && Object.keys(snap.results).length) {
+          console.log('[LD] Restored cache:', Object.keys(snap.results).length, 'indices,', snap.baResults ? Object.keys(snap.baResults).length+' BA' : 'no BA');
+          setResults(snap.results);
+          if (snap.baResults) setBaResults(snap.baResults);
+          setLastUpdated(new Date());
+          setPhase('done');
+        }
+      } else { console.log('[LD] No cache found'); }
+    } catch(_) {}
+  }, []);
+
+  const requestSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) return '';
+    return sortConfig.direction === 'asc' ? ' ▲' : ' ▼';
+  };
+
+  const toggleWatchlist = (name) => {
+    setWatchlist(prev => {
+      const next = prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name];
+      try { localStorage.setItem('ld_scanner_watchlist', JSON.stringify(next)); } catch(_) {}
+      return next;
+    });
+  };
+
+  const [geminiKey1, setGeminiKey1] = useState(() => {
+    try { return localStorage.getItem('ld_scanner_gemini_key1') || ''; } catch(_) { return ''; }
+  });
+  const [geminiKey2, setGeminiKey2] = useState(() => {
+    try { return localStorage.getItem('ld_scanner_gemini_key2') || ''; } catch(_) { return ''; }
+  });
+  const [keyInput1, setKeyInput1] = useState('');
+  const [keyInput2, setKeyInput2] = useState('');
+  const [keyStatus, setKeyStatus] = useState('');
+
+  function saveGeminiKey1() {
+    const k = keyInput1.trim();
+    if (!k || k.length < 20) { setKeyStatus('Key1 too short'); setTimeout(() => setKeyStatus(''), 2500); return; }
+    try { localStorage.setItem('ld_scanner_gemini_key1', k); } catch(_) {}
+    setGeminiKey1(k);
+    setKeyInput1('');
+    setKeyStatus('Key1 saved');
+    setTimeout(() => setKeyStatus(''), 2500);
+  }
+
+  function saveGeminiKey2() {
+    const k = keyInput2.trim();
+    if (!k || k.length < 20) { setKeyStatus('Key2 too short'); setTimeout(() => setKeyStatus(''), 2500); return; }
+    try { localStorage.setItem('ld_scanner_gemini_key2', k); } catch(_) {}
+    setGeminiKey2(k);
+    setKeyInput2('');
+    setKeyStatus('Key2 saved');
+    setTimeout(() => setKeyStatus(''), 2500);
+  }
+
+  async function callGeminiBA(indexName, wRsiVal, period) {
+    const k1 = (localStorage.getItem('ld_scanner_gemini_key1') || '').trim();
+    const k2 = (localStorage.getItem('ld_scanner_gemini_key2') || '').trim();
+    const keys = { 1: k1.length >= 20 ? k1 : null, 2: k2.length >= 20 ? k2 : null };
+    const regime = wRsiVal >= 50 ? 'A (Hope)' : wRsiVal >= 40 ? 'B (Watch)' : 'C (Fear)';
+    const prompt = `You are a constituent breadth analyst for Indian equity indices.
+
+INDEX: ${indexName}
+Index W-RSI(${period}): ${Math.round(wRsiVal)} → Regime ${regime}
+
+TASK: Estimate the percentage of this index's total market-cap weight whose constituent stocks are currently in Regime A (Weekly RSI ≥ 50, price above 20-week MA — i.e. genuine uptrend / Hope regime).
+
+Use your knowledge of current constituent weights and recent price behaviour.
+
+Return ONLY valid JSON:
+{"regime_a_weight_pct": <number 0-100>, "bull_count": <integer>, "total_count": <integer>, "top_regime_a": ["Stock1","Stock2","Stock3"], "confidence": "HIGH or MEDIUM or LOW", "note": "one sentence"}`;
+
+    const payload = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: "application/json" }
+    };
+
+    const cascade = [
+      { key: 1, model: 'gemini-3.1-flash-lite' },
+      { key: 1, model: 'gemini-3-flash' },
+      { key: 1, model: 'gemini-3.5-flash' },
+      { key: 1, model: 'gemini-3.1-pro' },
+      { key: 2, model: 'gemini-3.1-flash-lite' },
+      { key: 2, model: 'gemini-3-flash' },
+      { key: 2, model: 'gemini-3.5-flash' },
+      { key: 2, model: 'gemini-3.1-pro' },
+    ];
+
+    for (const entry of cascade) {
+      const apiKey = keys[entry.key];
+      if (!apiKey) continue;
+      try {
+        const ep = `https://generativelanguage.googleapis.com/v1beta/models/${entry.model}:generateContent?key=${apiKey}`;
+        const res = await fetch(ep, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(20000)
+        });
+        const data = await res.json();
+        if (data.error) { if (data.error.code === 429) continue; continue; }
+        const raw = (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+        return JSON.parse(raw);
+      } catch(err) { continue; }
+    }
+    return null;
+  }
+
+  async function callGeminiBA_Batch(batch, period) {
+    const k1 = (localStorage.getItem('ld_scanner_gemini_key1') || '').trim();
+    const k2 = (localStorage.getItem('ld_scanner_gemini_key2') || '').trim();
+    const keys = { 1: k1.length >= 20 ? k1 : null, 2: k2.length >= 20 ? k2 : null };
+
+    const batchLines = batch.map((idx, i) => {
+      const wRsi = idx.wRsi ?? 0;
+      const rg = wRsi >= 50 ? 'A (Hope)' : wRsi >= 40 ? 'B (Watch)' : 'C (Fear)';
+      return `[${i + 1}] ${idx.name}: W-RSI(${period}) = ${Math.round(wRsi)} → Regime ${rg}`;
+    }).join('\n');
+
+    const prompt = `You are a constituent breadth analyst for Indian equity indices.
+
+TASK: For EACH of the ${batch.length} indices below, estimate what percentage of that index's total market-cap weight has its constituent stocks in Regime A (Weekly RSI ≥ 50, price above 20-week MA — i.e. genuine uptrend / Hope regime).
+
+Return ONLY a JSON object where each key is the index name (exactly as shown) and the value is:
+{"regime_a_weight_pct": <0-100>, "bull_count": <integer>, "total_count": <integer>, "top_regime_a": ["Stock1","Stock2","Stock3"], "confidence": "HIGH|MEDIUM|LOW", "note": "one sentence"}
+
+Indices:
+${batchLines}`;
+
+    const payload = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: "application/json" }
+    };
+
+    const cascade = [
+      { key: 1, model: 'gemini-3.1-flash-lite' },
+      { key: 1, model: 'gemini-3-flash' },
+      { key: 1, model: 'gemini-3.5-flash' },
+      { key: 1, model: 'gemini-3.1-pro' },
+      { key: 2, model: 'gemini-3.1-flash-lite' },
+      { key: 2, model: 'gemini-3-flash' },
+      { key: 2, model: 'gemini-3.5-flash' },
+      { key: 2, model: 'gemini-3.1-pro' },
+    ];
+
+    for (const entry of cascade) {
+      const apiKey = keys[entry.key];
+      if (!apiKey) continue;
+      try {
+        const ep = `https://generativelanguage.googleapis.com/v1beta/models/${entry.model}:generateContent?key=${apiKey}`;
+        const res = await fetch(ep, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(45000)
+        });
+        const data = await res.json();
+        if (data.error) { if (data.error.code === 429) continue; continue; }
+        const raw = (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+        return JSON.parse(raw);
+      } catch(err) { continue; }
+    }
+    return null;
+  }
+
+  async function callGeminiAudit(promptText) {
+    const k1 = (localStorage.getItem('ld_scanner_gemini_key1') || '').trim();
+    const k2 = (localStorage.getItem('ld_scanner_gemini_key2') || '').trim();
+    const keys = { 1: k1.length >= 20 ? k1 : null, 2: k2.length >= 20 ? k2 : null };
+
+    const payload = {
+      contents: [{ parts: [{ text: promptText }] }],
+      generationConfig: { responseMimeType: "text/plain" }
+    };
+
+    const cascade = [
+      { key: 1, model: 'gemini-3.1-flash-lite' },
+      { key: 1, model: 'gemini-3-flash' },
+      { key: 1, model: 'gemini-3.5-flash' },
+      { key: 1, model: 'gemini-3.1-pro' },
+      { key: 2, model: 'gemini-3.1-flash-lite' },
+      { key: 2, model: 'gemini-3-flash' },
+      { key: 2, model: 'gemini-3.5-flash' },
+      { key: 2, model: 'gemini-3.1-pro' },
+    ];
+
+    for (const entry of cascade) {
+      const apiKey = keys[entry.key];
+      if (!apiKey) continue;
+      try {
+        const ep = `https://generativelanguage.googleapis.com/v1beta/models/${entry.model}:generateContent?key=${apiKey}`;
+        const res = await fetch(ep, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(30000)
+        });
+        const data = await res.json();
+        if (data.error) { if (data.error.code === 429) continue; continue; }
+        return (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+      } catch(err) { continue; }
+    }
+    return null;
+  }
+
+  async function runAudit(row) {
+    if (!row || !row.name) return;
+    const nifty50 = results["nifty50"];
+    const bankNifty = results["niftybank"];
+    const today = new Date().toLocaleDateString('en-IN', { year:'numeric', month:'short', day:'numeric' });
+
+    const promptText = `You are the "Nifty Portfolio & Psychology Auditor." Your purpose is to help me monitor my NSE index trading by applying the "Sacred RSI Regime" rules to identify earnings quality, structural trends, and durability.
+
+STRICT RULE: USE ONLY THE DATA PROVIDED BELOW. NO ASSUMPTIONS. NO HALLUCINATIONS. IF DATA IS MISSING OR NULL, STATE IT.
+
+## ACTUAL DATA FOR ${row.name}
+- Date: ${today}
+- Index Close: ${row.price != null ? row.price.toFixed(2) : 'NOT AVAILABLE'}
+- D-RSI(4): ${row.dRsi4 != null ? row.dRsi4.toFixed(2) : 'NOT AVAILABLE'}
+- D-RSI(8): ${row.dRsi8 != null ? row.dRsi8.toFixed(2) : 'NOT AVAILABLE'}
+- D-RSI(14): ${row.dRsi14 != null ? row.dRsi14.toFixed(2) : 'NOT AVAILABLE'}
+- W-RSI(4): ${row.wRsi4 != null ? row.wRsi4.toFixed(2) : 'NOT AVAILABLE'}
+- W-RSI(8): ${row.wRsi8 != null ? row.wRsi8.toFixed(2) : 'NOT AVAILABLE'}
+- W-RSI(14): ${row.wRsi14 != null ? row.wRsi14.toFixed(2) : 'NOT AVAILABLE'}
+- 20WMA Price: ${row.wma20Price != null ? row.wma20Price.toFixed(2) : 'NOT AVAILABLE'}
+- Regime: ${row.regime || 'NOT AVAILABLE'}
+- NIFTY 50 Close: ${nifty50?.price != null ? nifty50.price.toFixed(2) : 'NOT AVAILABLE'}
+- BANKNIFTY Close: ${bankNifty?.price != null ? bankNifty.price.toFixed(2) : 'NOT AVAILABLE'}
+
+## Core Analysis Framework:
+- Regime A (Weekly RSI ≥ 50 + Price > 20WMA): Structural Bull. Institutions are defending earnings. Orderly pullbacks to Daily RSI 40-50 are Optimal Entry points.
+- Regime B (Weekly RSI 40-49): Fatigue. Earnings quality is suspect or rotating. Lookout for RSI failing to reclaim 50 — this is a retail trap.
+- Regime C (Weekly RSI < 40): Trust Break. Institutional exit. Never average down.
+
+## Audit Guidelines (The "Lie Detector"):
+1. The Sacred Rule: True compounders do NOT stay below 40 RSI. If an index breaks 40 and can't reclaim 45, the earnings trust is broken.
+2. Divergence Check: If price hits a new high but Daily RSI shows a lower high, warn of "Cosmetic Growth".
+3. Psychology Filter: "Price moves first; earnings explanations come later."
+
+## Micro Alignment Confluence Filter:
+- 🟢 All 3 Green: D-RSI(4), D-RSI(8), AND D-RSI(14) ALL between 40.0 and 50.0 (perfect volatility compression).
+- 🟡 Near Miss: D-RSI(4) and D-RSI(8) between 40-50, but D-RSI(14) is slightly outside (50.1 to 53.0) (asynchronous cooling).
+- 🔴 No: Values widely scattered, or index in Regime B or C.
+
+## Output Format — Return EXACTLY this structure:
+
+### 1. Current Status
+[One-line summary of current regime and RSI positioning]
+
+### 2. Confluence Check
+Confluence (4/8/14): [🟢 All 3 Green / 🟡 Near Miss / 🔴 No]
+[Brief explanation based on actual D-RSI values]
+
+### 3. Weekly RSI Macro-Filter
+Weekly RSI(14): [value]
+4-Week Δ RSI_W: [positive/negative/flat]
+Vector Classification: [Rising / Phase 1 Healthy Cooldown / Phase 2 Structural Warning / Phase 3 Regime Death]
+
+### 4. Divergence & Psychology Alert
+Divergence Alert: [Flag any "Earnings Lies" if price/NAV and RSI are out of sync. If no divergence, say "None detected."]
+Psychology Audit: [Lookout warning based on current regime]
+
+### 5. Auditor's Verdict
+Verdict: [💎 STRIKE / 🔴 TRAP / OVERHEATED / 💀 AVOID]
+Execution Rule: [100% Size / 50% Size / Hard Abort]
+Reasoning: [One-line explanation tying data to the rule]`;
+
+    setAuditModal({ show: true, loading: true, name: row.name, result: '', error: '' });
+    try {
+      const response = await callGeminiAudit(promptText);
+      if (response) {
+        setAuditModal({ show: true, loading: false, name: row.name, result: response, error: '' });
+      } else {
+        setAuditModal({ show: true, loading: false, name: row.name, result: '', error: 'Gemini API returned no response. Check your API keys.' });
+      }
+    } catch (e) {
+      setAuditModal({ show: true, loading: false, name: row.name, result: '', error: 'Error: ' + e.message });
+    }
+  }
+
+  const categories = useMemo(() => {
+    const s = new Set(nseData.map(i => i.key));
+    return ["ALL", ...Array.from(s).filter(k => !/derivative|eligible/i.test(k)).sort()];
+  }, [nseData]);
+
+  const indexNames = useMemo(() => {
+    const names = Object.values(results).map(r => r.name).filter(Boolean);
+    return ["ALL", ...Array.from(new Set(names)).sort()];
+  }, [results]);
+
+  const vixPrice = results["indiavix"]?.price ?? null;
+  const vixOpen = results["indiavix"]?.open ?? null;
+
+  const handleScan = async () => {
+    stopRef.current = false;
+    setError(null);
+
+    // Phase 1: Fetch NSE prices via CORS proxy
+    setPhase('prices');
+    setProgress({ done: 0, total: 1, label: "Fetching NSE indices…" });
+
+    let nseRaw = [];
+    try {
+      const res = await fetch(CORS + encodeURIComponent(NSE_API), { signal: AbortSignal.timeout(20000) });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const json = await res.json();
+      nseRaw = json.data || [];
+    } catch (e) {
+      setError('Failed to fetch NSE data: ' + e.message + '. Try refreshing or check your internet connection.');
+      setPhase('init');
+      return;
+    }
+
+    setNseData(nseRaw);
+    setProgress({ done: 1, total: 1, label: `${nseRaw.length} indices loaded` });
+
+    // Build price map from NSE data
+    const priceMap = {};
+    const indexList = [];
+    nseRaw.forEach(idx => {
+      const key = normalize(idx.index || idx.indexSymbol);
+      priceMap[key] = {
+        price: parseFloat(idx.last) || null,
+        changePct: parseFloat(idx.percentChange) || null,
+        variation: parseFloat(idx.variation) || null,
+        open: parseFloat(idx.open) || null,
+        high: parseFloat(idx.high) || null,
+        low: parseFloat(idx.low) || null,
+        prevClose: parseFloat(idx.previousClose) || null,
+        yearHigh: parseFloat(idx.yearHigh) || null,
+        yearLow: parseFloat(idx.yearLow) || null,
+        perChange30d: parseFloat(idx.perChange30d) || null,
+        perChange365d: parseFloat(idx.perChange365d) || null,
+        pe: idx.pe || null,
+        pb: idx.pb || null,
+        dy: idx.dy || null,
+        key: idx.key,
+        _nseName: idx.index,
+      };
+      indexList.push({ name: idx.index, key, nseKey: idx.key });
+    });
+
+    // Phase 2: Fetch NSE index close files via proxy, fallback Yahoo
+    setPhase('rsi');
+    let tempResults = {};
+    let done = 0;
+    let historicalData = null;
+
+    try {
+      const res = await fetch('nse_history/nse_historical.json', { signal: AbortSignal.timeout(5000) });
+      if (res.ok) historicalData = await res.json();
+    } catch (e) {}
+
+    if (historicalData) {
+      setDataSource('NSE JSON');
+      const total = indexList.length;
+      for (const idx of indexList) {
+        if (stopRef.current) break;
+        setProgress({ done, total, label: `RSI: ${idx.name}` });
+        const priceInfo = priceMap[idx.key] || {};
+        let row = { name: idx.name, ...priceInfo };
+        row.divergence = false;
+        const sym = idx.name.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        const closes = historicalData[sym];
+        if (closes && closes.length >= 15) {
+          const dA4 = calcRSI(closes, 4), dA8 = calcRSI(closes, 8), dA14 = calcRSI(closes, 14);
+          row.dRsi4 = dA4.length ? dA4[dA4.length-1] : null;
+          row.dRsi8 = dA8.length ? dA8[dA8.length-1] : null;
+          row.dRsi14 = dA14.length ? dA14[dA14.length-1] : null;
+          row._dailyCloses = closes.slice(-30); // store last 30 for HA Band addon
+          const weekly = [];
+          for (let i = 0; i < closes.length; i += 5) weekly.push(closes[Math.min(i + 4, closes.length - 1)]);
+          if (weekly.length >= 14) {
+            const wA4 = calcRSI(weekly, 4), wA8 = calcRSI(weekly, 8), wA14 = calcRSI(weekly, 14);
+            row.wRsi4 = wA4.length ? wA4[wA4.length-1] : null;
+            row.wRsi8 = wA8.length ? wA8[wA8.length-1] : null;
+            row.wRsi14 = wA14.length ? wA14[wA14.length-1] : null;
+            row.wma20Price = calcWMA(weekly, 20);
+            row.wma20Rsi = calcWMA(wA4, 20);
+            if (dA4.length > 2) {
+              const p = dA4[dA4.length-2], c = dA4[dA4.length-1];
+              if (p != null && c > p && row.wma20Price && row.price < row.wma20Price)
+                row.divergence = true;
+            }
+          }
+        }
+        row.regime = computeRegime(row['wRsi'+basePeriod], row.price, row.wma20Price);
+        const ac = computeAction(row.regime, row['dRsi'+basePeriod]);
+        row.action = ac.action; row.rec = ac.rec;
+        tempResults[idx.key] = row;
+        setResults({ ...tempResults });
+        done++;
+      }
+    } else {
+      // Two-pass: first 25 files for D-RSI, then 75 more for W-RSI
+      const tradingDays = genTradingDays(100);
+      const dailyMap = {};
+      const total = tradingDays.length;
+
+      const fetchBatch = async (start, end) => {
+        const datesOk = [];
+        for (let bs = start; bs < end; bs += 5) {
+          if (stopRef.current) break;
+          await Promise.all(tradingDays.slice(bs, bs + 5).map(async (td) => {
+            const ds = fmtDDMMYYYY(td);
+            try {
+              const res = await fetch(CORS + encodeURIComponent(`https://archives.nseindia.com/content/indices/ind_close_all_${ds}.csv`), { signal: AbortSignal.timeout(10000) });
+              if (!res.ok) return;
+              const text = await res.text();
+              const lines = text.trim().split('\n').filter(l => l.trim());
+              if (lines.length < 2) return;
+              for (let i = 1; i < lines.length; i++) {
+                const v = lines[i].split(',');
+                const name = v[0]?.trim().toLowerCase();
+                const open = parseFloat(v[2]), high = parseFloat(v[3]), low = parseFloat(v[4]), close = parseFloat(v[5]);
+                if (name && !isNaN(open) && !isNaN(high) && !isNaN(low) && !isNaN(close)) {
+                  if (!dailyMap[name]) dailyMap[name] = [];
+                  dailyMap[name].push(ds + '|' + open + '|' + high + '|' + low + '|' + close);
+                }
+              }
+              datesOk.push(ds);
+            } catch (e) {}
+          }));
+        }
+        return datesOk;
+      };
+
+      const getCloses = (name) => {
+        const key = name.toLowerCase();
+        const entries = dailyMap[key];
+        if (!entries || entries.length < 15) return null;
+        entries.sort((a, b) => {
+          const da = a.substring(4,8) + a.substring(2,4) + a.substring(0,2);
+          const db = b.substring(4,8) + b.substring(2,4) + b.substring(0,2);
+          return da < db ? -1 : da > db ? 1 : 0;
+        });
+        return entries.map(e => parseFloat(e.split('|')[4]));
+      };
+
+      const processIndex = (idx) => {
+        const priceInfo = priceMap[idx.key] || {};
+        let row = { name: idx.name, ...priceInfo };
+        row.divergence = false;
+        const closes = getCloses(idx.name);
+        if (closes) {
+          const dA4 = calcRSI(closes, 4), dA8 = calcRSI(closes, 8), dA14 = calcRSI(closes, 14);
+          row.dRsi4 = dA4.length ? dA4[dA4.length-1] : null;
+          row.dRsi8 = dA8.length ? dA8[dA8.length-1] : null;
+          row.dRsi14 = dA14.length ? dA14[dA14.length-1] : null;
+          row._dailyCloses = closes.slice(-30); // store for HA Band addon
+          const weekly = [];
+          for (let j = 0; j < closes.length; j += 5) weekly.push(closes[Math.min(j + 4, closes.length - 1)]);
+          if (weekly.length >= 14) {
+            const wA4 = calcRSI(weekly, 4), wA8 = calcRSI(weekly, 8), wA14 = calcRSI(weekly, 14);
+            row.wRsi4 = wA4.length ? wA4[wA4.length-1] : null;
+            row.wRsi8 = wA8.length ? wA8[wA8.length-1] : null;
+            row.wRsi14 = wA14.length ? wA14[wA14.length-1] : null;
+            row.wma20Price = calcWMA(weekly, Math.min(20, weekly.length));
+            row.wma20Rsi = calcWMA(wA4, Math.min(20, wA4.length));
+            if (dA4.length > 2) {
+              const p = dA4[dA4.length-2], c = dA4[dA4.length-1];
+              if (p != null && c > p && row.wma20Price && row.price < row.wma20Price)
+                row.divergence = true;
+            }
+          }
+        }
+        return row;
+      };
+
+      // Pass 1: fetch 25 days, compute D-RSI
+      const dates1 = await fetchBatch(0, 25);
+      setProgress({ done: 25, total, label: `Pass 1: ${dates1.length} days loaded` });
+      for (const idx of indexList) {
+        if (stopRef.current) break;
+        const row = processIndex(idx);
+        row.regime = computeRegime(row['wRsi'+basePeriod], row.price, row.wma20Price);
+        const ac = computeAction(row.regime, row['dRsi'+basePeriod]);
+        row.action = ac.action; row.rec = ac.rec;
+        tempResults[idx.key] = row;
+      }
+      setResults({ ...tempResults });
+      setPhase('rsi');
+
+      // Pass 2: fetch 75 more days, compute W-RSI, Yahoo fallback for gaps
+      const dates2 = await fetchBatch(25, total);
+      const allDates = dates1.concat(dates2);
+      setProgress({ done: allDates.length, total, label: `Pass 2: ${allDates.length} days` });
+      setDataSource(`NSE ${allDates.length}d`);
+
+      const totalIdx = indexList.length;
+      for (let i = 0; i < totalIdx; i++) {
+        if (stopRef.current) break;
+        const idx = indexList[i];
+        setProgress({ done: i + 1, total: totalIdx, label: `RSI: ${idx.name}` });
+        const row = processIndex(idx);
+
+        // Yahoo fallback for indices without W-RSI
+        if (row.wRsi14 == null && YAHOO[idx.key]) {
+          try {
+            const symbol = YAHOO[idx.key];
+            const [wkRes, dRes] = await Promise.all([
+              fetch(CORS + encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1wk&range=2y`), { signal: AbortSignal.timeout(12000) }).catch(() => null),
+              fetch(CORS + encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=6mo`), { signal: AbortSignal.timeout(12000) }).catch(() => null),
+            ]);
+            if (wkRes?.ok) {
+              const wJson = await wkRes.json();
+              const wC = (wJson?.chart?.result?.[0]?.indicators?.quote?.[0]?.close || []).filter(x => x != null);
+              if (wC.length >= 14) {
+                const wA = calcRSI(wC, 4), wB = calcRSI(wC, 8), wC2 = calcRSI(wC, 14);
+                row.wRsi4 = wA.length ? wA[wA.length-1] : null;
+                row.wRsi8 = wB.length ? wB[wB.length-1] : null;
+                row.wRsi14 = wC2.length ? wC2[wC2.length-1] : null;
+                row.wma20Price = calcWMA(wC, 20);
+                row.wma20Rsi = calcWMA(wA, 20);
+              }
+            }
+            if (dRes?.ok && row.dRsi14 == null) {
+              const dJson = await dRes.json();
+              const dC = (dJson?.chart?.result?.[0]?.indicators?.quote?.[0]?.close || []).filter(x => x != null);
+              if (dC.length >= 14) {
+                const dA = calcRSI(dC, 4), dB = calcRSI(dC, 8), dC2 = calcRSI(dC, 14);
+                row.dRsi4 = dA.length ? dA[dA.length-1] : null;
+                row.dRsi8 = dB.length ? dB[dB.length-1] : null;
+                row.dRsi14 = dC2.length ? dC2[dC2.length-1] : null;
+                row._dailyCloses = dC.slice(-30); // store for HA Band addon
+              }
+            }
+          } catch (e) {}
+        }
+
+        row.regime = computeRegime(row['wRsi'+basePeriod], row.price, row.wma20Price);
+        const ac = computeAction(row.regime, row['dRsi'+basePeriod]);
+        row.action = ac.action; row.rec = ac.rec;
+        tempResults[idx.key] = row;
+        setResults({ ...tempResults });
+        done = i + 1;
+      }
+
+      const remaining = indexList.filter(idx => !tempResults[idx.key]);
+      remaining.forEach(idx => { tempResults[idx.key] = { name: idx.name, ...priceMap[idx.key] }; });
+      window._ldScannerData = { dailyMap: dailyMap, priceMap: priceMap, indexList: indexList };
+    }
+
+    setResults({ ...tempResults });
+
+    // BA Phase: Gemini breadth analysis for Regime A + Watchlist indices
+    const sk1 = (localStorage.getItem('ld_scanner_gemini_key1') || '').trim();
+    const sk2 = (localStorage.getItem('ld_scanner_gemini_key2') || '').trim();
+    let baSnap = {};
+    if ((sk1.length >= 20 || sk2.length >= 20) && !stopRef.current) {
+      baStopRef.current = false;
+      const baTargets = indexList.filter(idx => {
+        const d = tempResults[idx.key];
+        return d && !d.error && (d.regime === 'A' || watchlist.includes(idx.name));
+      });
+      const initBA = {};
+      baTargets.forEach(idx => {
+        const loading = { status: 'loading', pct: null };
+        initBA[idx.name] = loading;
+        baSnap[idx.name] = loading;
+      });
+      setBaResults(prev => ({ ...prev, ...initBA }));
+
+      const BATCH_SIZE = 10;
+      let baDone = 0;
+      for (let batchStart = 0; batchStart < baTargets.length; batchStart += BATCH_SIZE) {
+        if (stopRef.current || baStopRef.current) break;
+        const batch = baTargets.slice(batchStart, batchStart + BATCH_SIZE).map(idx => ({
+          name: idx.name, key: idx.key,
+          wRsi: tempResults[idx.key]?.['wRsi'+basePeriod] ?? 0,
+          regime: tempResults[idx.key]?.regime ?? ''
+        }));
+        setProgress({ done: 0, total: 0, label: `BA batch ${Math.floor(batchStart/BATCH_SIZE)+1}/${Math.ceil(baTargets.length/BATCH_SIZE)} (${batch.length} idx)` });
+        const batchResult = await callGeminiBA_Batch(batch, basePeriod);
+        if (batchResult && typeof batchResult === 'object') {
+          for (const idx of batch) {
+            const result = batchResult[idx.name];
+            const pct = result?.regime_a_weight_pct ?? null;
+            const entry = {
+              status: pct !== null ? 'done' : 'error',
+              pct,
+              bull: result?.bull_count ?? null,
+              total: result?.total_count ?? null,
+              conf: result?.confidence ?? '',
+              note: result?.note ?? ''
+            };
+            baSnap[idx.name] = entry;
+            baDone++;
+          }
+          setBaResults(prev => ({ ...prev, ...baSnap }));
+        } else {
+          for (const idx of batch) {
+            baSnap[idx.name] = { status: 'error', pct: null, bull: null, total: null, conf: '', note: 'Batch call failed' };
+            baDone++;
+          }
+          setBaResults(prev => ({ ...prev, ...baSnap }));
+        }
+        setProgress({ done: 0, total: 0, label: `BA ${baDone}/${baTargets.length}` });
+        if (batchStart + BATCH_SIZE < baTargets.length) await new Promise(r => setTimeout(r, 4200));
+      }
+    }
+
+    setProgress({ done: 0, total: 0, label: "" });
+    setLastUpdated(new Date());
+    setPhase('done');
+    // Cache snapshot for offline use
+    try {
+      // Save only display-critical fields (omit _dailyCloses to save space)
+      const slimResults = {};
+      for (const k of Object.keys(tempResults)) {
+        const r = tempResults[k];
+        slimResults[k] = { name: r.name, price: r.price, changePct: r.changePct,
+          open: r.open, high: r.high, low: r.low, regime: r.regime,
+          dRsi4: r.dRsi4, dRsi8: r.dRsi8, dRsi14: r.dRsi14,
+          wRsi4: r.wRsi4, wRsi8: r.wRsi8, wRsi14: r.wRsi14,
+          wma20Price: r.wma20Price, wma20Rsi: r.wma20Rsi, divergence: r.divergence,
+          action: r.action, rec: r.rec };
+      }
+      var snapBa = {};
+      for (var k in baSnap) { if (baSnap[k].status !== 'loading') snapBa[k] = baSnap[k]; }
+      localStorage.setItem('ld_scanner_cache', JSON.stringify({ results: slimResults, baResults: snapBa }));
+      console.log('[LD] Cache saved:', Object.keys(slimResults).length, 'indices,', Object.keys(snapBa).length, 'BA entries');
+    } catch(e) { console.warn('[LD] Cache save failed:', e); }
+  };
+
+  useEffect(() => {
+    const tw = tableWrapRef.current;
+    const ts = topScrollRef.current;
+    if (!tw || !ts) return;
+    const inner = ts.firstElementChild;
+    if (inner) inner.style.width = Math.max(tw.scrollWidth, ts.clientWidth + 1) + 'px';
+  }); // no dep array — runs each render to keep scroll sync accurate
+
+  const sortedRows = useMemo(() => {
+    let list = Object.keys(results).map(k => results[k]).filter(r => r.price != null);
+    if (searchQuery) {
+      list = list.filter(r => r.name === searchQuery);
+    }
+    if (catFilter !== "ALL") list = list.filter(r => r.key === catFilter);
+    if (regimeFilter !== "ALL") list = list.filter(r => r.regime === regimeFilter);
+    if (phaseFilter !== "ALL") {
+      list = list.filter(r => {
+        const et = runExecutionTree(r, vixPrice, basePeriod);
+        return et && et.verdict === phaseFilter;
+      });
+    }
+    if (baFilter) {
+      list = list.filter(r => {
+        const ba = baResults[r.name];
+        if (!ba || ba.pct === null) return false;
+        if (baFilter === 'strong') return ba.pct >= 60;
+        if (baFilter === 'moderate') return ba.pct >= 40 && ba.pct < 60;
+        if (baFilter === 'weak') return ba.pct < 40;
+        return true;
+      });
+    }
+    if (showWatchlist && watchlist.length) {
+      list = list.filter(r => watchlist.includes(r.name));
+    }
+    if (sortField1) {
+      const getVal = (row, key) => {
+        if (key === 'priceVsWma') return (row.price && row.wma20Price) ? (row.price > row.wma20Price ? 1 : -1) : 0;
+        if (key === 'verdict') { const et = runExecutionTree(row, vixPrice, basePeriod); return et ? et.label : ''; }
+        if (key === 'detail') { const et = runExecutionTree(row, vixPrice, basePeriod); return et ? et.detail : ''; }
+        if (key === 'baPct') return baResults[row.name]?.pct ?? -1;
+        if (key === 'haSignal') { const o={'STRONG SELL':1,'SELL':2,'CAUTION':3,'WATCH':4,'NEUTRAL':5,'HOLD':6,'BUY':7}; const ha=computeHABandSignal(row,vixPrice); return o[ha?.signal]??5; }
+        if (key === 'dRsi14') return row.dRsi14 ?? -1;
+        if (key === 'wRsi14') return row.wRsi14 ?? -1;
+        if (key === 'category') return row.key||'';
+        if (key === 'name') return row.name||'';
+        if (key === 'regime') return row.regime||'';
+        if (key === 'price') return row.price ?? -1;
+        if (key === 'changePct') return row.changePct ?? -Infinity;
+        if (key === 'wma20Price') return row.wma20Price ?? -1;
+        if (key === 'dRsi') return row['dRsi'+basePeriod] ?? -1;
+        if (key === 'wRsi') return row['wRsi'+basePeriod] ?? -1;
+        return row[key];
+      };
+      const fields = [[sortField1,sortDir1],[sortField2,sortDir2],[sortField3,sortDir3]].filter(([k])=>k);
+      list.sort((a, b) => {
+        for (const [key, dir] of fields) {
+          const va = getVal(a, key), vb = getVal(b, key);
+          if (va < vb) return dir === 'asc' ? -1 : 1;
+          if (va > vb) return dir === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    } else if (sortConfig.key) {
+      list.sort((a, b) => {
+        let aVal, bVal;
+        if (sortConfig.key === 'priceVsWma') {
+          aVal = (a.price && a.wma20Price) ? (a.price > a.wma20Price ? 1 : -1) : 0;
+          bVal = (b.price && b.wma20Price) ? (b.price > b.wma20Price ? 1 : -1) : 0;
+        } else if (sortConfig.key === 'verdict') {
+          const etA = runExecutionTree(a, vixPrice, basePeriod);
+          const etB = runExecutionTree(b, vixPrice, basePeriod);
+          aVal = etA ? etA.label : '';
+          bVal = etB ? etB.label : '';
+        } else if (sortConfig.key === 'detail') {
+          const etA = runExecutionTree(a, vixPrice, basePeriod);
+          const etB = runExecutionTree(b, vixPrice, basePeriod);
+          aVal = etA ? etA.detail : '';
+          bVal = etB ? etB.detail : '';
+        } else if (sortConfig.key === 'baPct') {
+          aVal = baResults[a.name]?.pct ?? -1;
+          bVal = baResults[b.name]?.pct ?? -1;
+        } else if (sortConfig.key === 'haSignal') {
+          const sigOrder = {'STRONG SELL':1,'SELL':2,'CAUTION':3,'WATCH':4,'NEUTRAL':5,'HOLD':6,'BUY':7};
+          const haA = computeHABandSignal(a, vixPrice);
+          const haB = computeHABandSignal(b, vixPrice);
+          aVal = sigOrder[haA?.signal] ?? 5;
+          bVal = sigOrder[haB?.signal] ?? 5;
+        } else if (sortConfig.key === 'dRsi14') {
+          aVal = a.dRsi14 ?? -1;
+          bVal = b.dRsi14 ?? -1;
+        } else if (sortConfig.key === 'wRsi14') {
+          aVal = a.wRsi14 ?? -1;
+          bVal = b.wRsi14 ?? -1;
+        } else {
+          aVal = a[sortConfig.key];
+          bVal = b[sortConfig.key];
+        }
+        if (aVal == null) return 1;
+        if (bVal == null) return -1;
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    } else {
+      const sigOrder = {'STRONG SELL':1,'SELL':2,'CAUTION':3,'WATCH':4,'NEUTRAL':5,'HOLD':6,'BUY':7};
+      list.sort((a, b) => {
+        const va = baResults[a.name]?.pct ?? -1;
+        const vb = baResults[b.name]?.pct ?? -1;
+        if (va !== vb) return (vb - va);
+        const haA = sigOrder[computeHABandSignal(a, vixPrice)?.signal] ?? 5;
+        const haB = sigOrder[computeHABandSignal(b, vixPrice)?.signal] ?? 5;
+        return (haB - haA);
+      });
+    }
+    return list;
+  }, [results, searchQuery, regimeFilter, phaseFilter, catFilter, vixPrice, sortConfig, sortField1, sortDir1, sortField2, sortDir2, sortField3, sortDir3, baResults, showWatchlist, watchlist, baFilter]);
+
+  const hasData = sortedRows.length > 0 && Object.keys(results).length > 0;
+  const pct = Math.round((progress.done / (progress.total || 1)) * 100);
+
+  return (
+    <div>
+      <header className="app-header">
+        <div className="brand">
+          <div className="brand-icon">LD</div>
+          <div className="brand-text">
+            <h1>Scanner V6</h1>
+            <p>NSE Official Index Close Files · Two-Pass RSI · BA · HA Band Signals</p>
+          </div>
+        </div>
+        <div className="header-right">
+          {lastUpdated && <span style={{fontFamily:"var(--mono)",fontSize:11,color:"var(--text-faint)"}}>Updated {lastUpdated.toLocaleTimeString('en-IN')}</span>}
+          {hasData && <span style={{fontFamily:"var(--mono)",fontSize:11,color:"var(--text-dim)"}}>{sortedRows.length} idx</span>}
+          <span className={`live-dot ${phase === 'rsi' ? 'active' : ''}`}>
+            {phase === 'rsi' ? `Daily RSI ✓` : phase === 'done' ? (dataSource||'READY') : phase === 'prices' ? 'LOADING' : 'INIT'}
+          </span>
+        </div>
+      </header>
+
+      <div className="main-wrap">
+        {error && (
+          <div style={{background:"var(--red-dim)",border:"1px solid var(--red)",padding:"10px 16px",marginBottom:16,fontFamily:"var(--mono)",fontSize:12,color:"var(--red)",borderRadius:2}}>
+            {error}
+          </div>
+        )}
+
+        <div className="ba-key-bar">
+          <span className="ba-key-label">Gemini Keys</span>
+          <span className="ba-key-status">
+            {geminiKey1 || geminiKey2 ? 'Keys saved — cascade BA runs for Regime A indices' : <span style={{color:"var(--orange)"}}>No keys — BA column will be empty</span>}
+            {keyStatus && <span style={{marginLeft:8}}>{keyStatus}</span>}
+          </span>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap",width:"100%",alignItems:"center"}}>
+            <div style={{display:"flex",gap:6,flexWrap:"nowrap",alignItems:"center",flex:1,minWidth:180}}>
+              <input className="ba-key-input" type="password" placeholder="Key 1: AIza… (cascade: flash-lite → flash → pro)"
+                value={keyInput1} onChange={e => setKeyInput1(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && saveGeminiKey1()}/>
+              <button className="ba-key-save" style={{background:geminiKey1 ? 'var(--green)' : 'var(--red)'}} onClick={saveGeminiKey1}>{geminiKey1 ? 'Update 1' : 'Save 1'}</button>
+            </div>
+            <div style={{display:"flex",gap:6,flexWrap:"nowrap",alignItems:"center",flex:1,minWidth:180}}>
+              <input className="ba-key-input" type="password" placeholder="Key 2: AIza… (cascade fallback)"
+                value={keyInput2} onChange={e => setKeyInput2(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && saveGeminiKey2()}/>
+              <button className="ba-key-save" style={{background:geminiKey2 ? 'var(--green)' : 'var(--red)'}} onClick={saveGeminiKey2}>{geminiKey2 ? 'Update 2' : 'Save 2'}</button>
+            </div>
+          </div>
+        </div>
+
+        <div className="controls-bar">
+          <div className="controls-left">
+            <div className="filter-group">
+              <span className="filter-label">Search</span>
+              <select className="filter-select" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} style={{minWidth:110}}>
+                {indexNames.map(n => <option key={n} value={n === 'ALL' ? '' : n}>{n}</option>)}
+              </select>
+            </div>
+            <div className="filter-group">
+              <span className="filter-label">Category</span>
+              <select className="filter-select" value={catFilter} onChange={e => setCatFilter(e.target.value)} style={{minWidth:70}}>
+                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="filter-group">
+              <span className="filter-label">Regime</span>
+              <select className="filter-select" value={regimeFilter} onChange={e => setRegimeFilter(e.target.value)}>
+                <option value="ALL">All</option>
+                <option value="A">A - Bull</option>
+                <option value="B">B - Fatigue</option>
+                <option value="C">C - Break</option>
+              </select>
+            </div>
+            <div className="filter-group">
+              <span className="filter-label">Verdict</span>
+              <select className="filter-select" value={phaseFilter} onChange={e => setPhaseFilter(e.target.value)}>
+                <option value="ALL">All</option>
+                <option value="VERIFIED STRIKE">Strike</option>
+                <option value="NEAR MISS">Near Miss</option>
+                <option value="FAKE SUPPORT">Fake Support</option>
+                <option value="ABORT">Abort</option>
+              </select>
+            </div>
+          </div>
+          {phase !== 'rsi' && phase !== 'prices'
+            ? <button className="btn-scan" onClick={handleScan}>⚡ Step 1 - Execute X-Ray Audit</button>
+            : <button className="btn-stop" onClick={() => { stopRef.current = true; baStopRef.current = true; }}>■ Stop ({pct}%)</button>
+          }
+        </div>
+
+        {hasData && (() => {
+          const all = Object.values(results).filter(r => r.price != null);
+          const counts = { BUY:0, HOLD:0, WAIT:0, SELL:0 };
+          all.forEach(r => {
+            const et = runExecutionTree(r, vixPrice, basePeriod);
+            let d = 'WAIT';
+            if (!et) { d = 'WAIT'; }
+            else if (et.verdict === 'VERIFIED STRIKE') d = 'BUY';
+            else if (et.verdict === 'NEAR MISS') d = 'BUY';
+            else if (et.verdict === 'FAKE SUPPORT' || et.verdict === 'ABORT') d = 'SELL';
+            else if (r.regime === 'A' && et.verdict === 'NOT READY') d = 'HOLD';
+            else if (r.regime === 'B' || r.regime === 'C') d = 'SELL';
+            counts[d] = (counts[d]||0) + 1;
+          });
+          const aCnt = all.filter(r=>r.regime==='A').length;
+          const activeVerdict = phaseFilter;
+          return (
+            <div className="summary-row">
+              <div className={`s-tile ${activeVerdict==='VERIFIED STRIKE'||activeVerdict==='NEAR MISS'?'active-buy':''}`}
+                onClick={()=>setPhaseFilter(v=>v==='VERIFIED STRIKE'?'ALL':'VERIFIED STRIKE')}>
+                <div className="s-tile-lbl">⚡ BUY</div>
+                <div className="s-tile-num g">{counts.BUY}</div>
+                <div className="s-tile-sub">Strike + Near Miss</div>
+              </div>
+              <div className={`s-tile ${activeVerdict==='HOLD'?'active-hold':''}`}
+                onClick={()=>setPhaseFilter(v=>v==='HOLD'?'ALL':'HOLD')}>
+                <div className="s-tile-lbl">⏸ HOLD</div>
+                <div className="s-tile-num y">{counts.HOLD}</div>
+                <div className="s-tile-sub">Regime A · Trend on</div>
+              </div>
+              <div className={`s-tile ${activeVerdict==='NOT READY'?'active-miss':''}`}
+                onClick={()=>setPhaseFilter(v=>v==='NOT READY'?'ALL':'NOT READY')}>
+                <div className="s-tile-lbl">⌛ WAIT</div>
+                <div className="s-tile-num b">{counts.WAIT}</div>
+                <div className="s-tile-sub">Not in zone yet</div>
+              </div>
+              <div className={`s-tile ${activeVerdict==='ABORT'||activeVerdict==='FAKE SUPPORT'?'active-sell':''}`}
+                onClick={()=>setPhaseFilter(v=>v==='ABORT'?'ALL':'ABORT')}>
+                <div className="s-tile-lbl">✗ SELL/AVOID</div>
+                <div className="s-tile-num r">{counts.SELL}</div>
+                <div className="s-tile-sub">Regime B/C · Trust break</div>
+              </div>
+              <div className="s-tile">
+                <div className="s-tile-lbl">🟢 Regime A</div>
+                <div className="s-tile-num g">{aCnt}</div>
+                <div className="s-tile-sub">of {all.length} total</div>
+              </div>
+              <div className="s-tile" style={{display:"flex",flexDirection:"column",justifyContent:"center",gap:6}}>
+                <div className="s-tile-lbl">% Wt Regime A</div>
+                {baFilter ? (
+                  <div style={{display:"flex",flexDirection:"column",gap:4,alignItems:"center"}}>
+                    <span style={{fontSize:10,fontWeight:600,color:"var(--orange)",whiteSpace:"nowrap"}}>
+                      {baFilter === 'strong' ? '>60%' : baFilter === 'moderate' ? '40-60%' : '<40%'}
+                    </span>
+                    <button onClick={()=>setBaFilter(null)}
+                      style={{background:"var(--surface2)",border:"1px solid var(--border2)",fontFamily:"var(--mono)",fontSize:9,fontWeight:600,padding:"3px 10px",cursor:"pointer",color:"var(--text)"}}>← Back</button>
+                  </div>
+                ) : (
+                  <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                    {[
+                      {key:'strong',label:'>60%',cls:'ba-strong'},
+                      {key:'moderate',label:'40-60%',cls:'ba-moderate'},
+                      {key:'weak',label:'<40%',cls:'ba-weak'},
+                    ].map(b => (
+                      <span key={b.key}
+                        onClick={()=>setBaFilter(b.key)}
+                        style={{cursor:"pointer",fontFamily:"var(--mono)",fontSize:9,fontWeight:600,padding:"2px 8px",borderRadius:2,border:"1px solid",whiteSpace:"nowrap"}}
+                        className={`ba-pill ${b.cls}`}>{b.label}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="s-tile" style={{display:"flex",flexDirection:"column",justifyContent:"center",gap:3,cursor:"default"}}>
+                <div className="s-tile-lbl">SORT</div>
+                {[[sortField1,setSortField1,sortDir1,setSortDir1],[sortField2,setSortField2,sortDir2,setSortDir2],[sortField3,setSortField3,sortDir3,setSortDir3]].map(([f,setF,d,setD],i)=>(
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:2}}>
+                    <select value={f} onChange={e=>setF(e.target.value)}
+                      style={{flex:1,minWidth:0,background:"var(--surface2)",color:"var(--text)",border:"1px solid var(--border2)",fontFamily:"var(--mono)",fontSize:9,padding:"2px 4px",outline:"none",cursor:"pointer"}}>
+                      <option value="">—</option>
+                      <option value="regime">Regime</option>
+                      <option value="verdict">Verdict</option>
+                      <option value="category">Category</option>
+                      <option value="price">Price</option>
+                      <option value="changePct">% Chg</option>
+                      <option value="wma20Price">WMA</option>
+                      <option value="dRsi">dRSI</option>
+                      <option value="wRsi">wRSI</option>
+                      <option value="dRsi14">dRSI14</option>
+                      <option value="wRsi14">wRSI14</option>
+                      <option value="name">Name</option>
+                      <option value="baPct">BA %</option>
+                      <option value="haSignal">HA Sig</option>
+                      <option value="detail">Detail</option>
+                    </select>
+                    <span onClick={()=>setD(v=>v==='asc'?'desc':'asc')}
+                      style={{fontSize:11,cursor:"pointer",userSelect:"none",color:"var(--text)",lineHeight:1,flexShrink:0,padding:"2px 4px"}}>
+                      {d==='asc'?'▲':'▼'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="s-tile" style={{display:"flex",flexDirection:"column",justifyContent:"center",gap:10}}>
+                <label style={{display:"flex",alignItems:"center",gap:6,cursor:"pointer",userSelect:"none",fontSize:10,fontWeight:600,color:"var(--text)"}}>
+                  <span style={{whiteSpace:"nowrap"}}>{showWatchlist ? 'Watchlist' : 'Full List'}</span>
+                  <input type="checkbox" checked={showWatchlist} onChange={e => setShowWatchlist(e.target.checked)} style={{display:"none"}}/>
+                  <span style={{display:"inline-block",width:16,height:16,borderRadius:2,border:`2px solid ${showWatchlist?"var(--orange)":"var(--border2)"}`,background:showWatchlist?"var(--orange)":"transparent",textAlign:"center",lineHeight:"16px",fontSize:9,fontWeight:700,flexShrink:0,color:"#000"}}>{showWatchlist ? '✓' : ''}</span>
+                </label>
+                <div style={{height:1,background:"var(--border2)",margin:"2px 0"}}/>
+                {vixPrice && (
+                  <div style={{display:"flex",alignItems:"center",gap:6,fontSize:10}}>
+                    <span style={{color:"var(--text-dim)"}}>VIX</span>
+                    <span style={{fontWeight:700,
+                      color: vixOpen != null && vixPrice > vixOpen ? "var(--green)" : "var(--red)",
+                    }}>{vixPrice.toFixed(1)}</span>
+                    {vixOpen != null && <span style={{fontSize:9,color:"var(--text-dim)"}}>{(vixPrice - vixOpen) > 0 ? '▲' : '▼'}{Math.abs((vixPrice - vixOpen) / vixOpen * 100).toFixed(1)}%</span>}
+                  </div>
+                )}
+                <div style={{display:"flex",alignItems:"center",gap:4,fontSize:9}}>
+                  <span style={{color:"var(--text-dim)"}}>RSI</span>
+                  <select value={basePeriod} onChange={e => setBasePeriod(Number(e.target.value))}
+                    style={{background:"var(--surface2)",color:"var(--text)",border:"1px solid var(--border2)",fontFamily:"var(--mono)",fontSize:9,padding:"2px 4px",outline:"none"}}>
+                    <option value={4}>4</option>
+                    <option value={8}>8</option>
+                    <option value={14}>14</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {(phase === 'rsi' || phase === 'prices') && (
+          <div className="progress-wrap">
+            <div className="progress-top">
+              <span className="progress-label">{progress.label} ({progress.done}/{progress.total})</span>
+              {phase === 'rsi' && <span className="progress-pct">{pct}%</span>}
+            </div>
+            {(phase === 'rsi') && (
+              <div className="progress-track"><div className="progress-fill" style={{width:pct+'%'}}/></div>
+            )}
+          </div>
+        )}
+
+        {hasData ? (
+          <div>
+            <div ref={topScrollRef} className="table-top-scroll" style={{overflowX:"auto",overflowY:"hidden",height:12,background:"var(--surface)",border:"1px solid var(--border2)",borderBottom:"none"}}
+              onScroll={e => { if (tableWrapRef.current) tableWrapRef.current.scrollLeft = e.target.scrollLeft; }}>
+              <div ref={el => { if (el && tableWrapRef.current) el.style.width = tableWrapRef.current.scrollWidth + 'px'; }} style={{height:1}}/>
+            </div>
+            <div className="table-wrap" ref={tableWrapRef} onScroll={e => { if (topScrollRef.current) topScrollRef.current.scrollLeft = e.target.scrollLeft; }}>
+            <table>
+              <thead>
+                <tr className="group-header">
+                  <th></th>
+                  <th></th>
+                  <th colSpan="6">Core Condition</th>
+                  <th colSpan="2">Confirmation 1</th>
+                  <th colSpan="3">Final Decision</th>
+                  <th colSpan="2">Validation</th>
+                </tr>
+                <tr>
+                  <th style={{width:34,textAlign:"center",cursor:'pointer',userSelect:'auto'}} title="Click to add/remove from Watchlist">#</th>
+                  <th onClick={() => requestSort('name')}>Index{getSortIcon('name')}</th>
+                  <th data-group="1" className="group-start" onClick={() => requestSort('price')}>Price{getSortIcon('price')}</th>
+                  <th data-group="1" style={{textAlign:"center"}} onClick={() => requestSort('changePct')}>% Chg{getSortIcon('changePct')}</th>
+                  <th data-group="2" className="group-start" style={{textAlign:"center"}} onClick={() => requestSort('dRsi14')}>D RSI 4·8·14{getSortIcon('dRsi14')}</th>
+                  <th data-group="2" style={{textAlign:"center"}} onClick={() => requestSort('wRsi14')}>W RSI 4·8·14{getSortIcon('wRsi14')}</th>
+                  <th data-group="2" style={{textAlign:"center"}} onClick={() => requestSort('regime')}>Regime{getSortIcon('regime')}</th>
+                  <th data-group="2" style={{textAlign:"center",minWidth:90}} onClick={() => requestSort('baPct')} title="% of index market-cap weight in Regime A (Gemini AI estimate, Regime A indices only)">% Wt Regime A{getSortIcon('baPct')}</th>
+                  <th data-group="3" className="group-start" onClick={() => requestSort('wma20Rsi')}>WMA20{getSortIcon('wma20Rsi')}</th>
+                  <th data-group="3" style={{textAlign:"center"}} onClick={() => requestSort('priceVsWma')}>P&gt;WMA{getSortIcon('priceVsWma')}</th>
+                  <th data-group="4" className="group-start" style={{textAlign:"center"}} onClick={() => requestSort('action')}>Action{getSortIcon('action')}</th>
+                  <th data-group="4" style={{minWidth:140}} onClick={() => requestSort('verdict')}>Verdict{getSortIcon('verdict')}</th>
+                  <th data-group="4" style={{minWidth:180}} onClick={() => requestSort('detail')}>Detail{getSortIcon('detail')}</th>
+                  <th data-group="5" className="ha-sep group-start" style={{textAlign:"center",minWidth:100}} onClick={() => requestSort('haSignal')} title="Heiken Ashi + 8 SMA Band + 21 SMA Low Signal (V3D Add-on)">HA Signal{getSortIcon('haSignal')}</th>
+                  <th data-group="5" style={{minWidth:240}} title="HA Band reasoning — zone, SMA levels, confluence">HA Reasoning</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedRows.map((r, i) => {
+                  const wmaClass = r.price && r.wma20Price ? (r.price > r.wma20Price ? 'wma-yes' : 'wma-no') : '';
+                  const wmaText = r.price && r.wma20Price ? (r.price > r.wma20Price ? 'YES' : 'NO') : '—';
+                  const et = runExecutionTree(r, vixPrice, basePeriod);
+                  const vs = {green:{bg:"var(--green-dim)",color:"var(--green)",border:"var(--green)"},
+                    amber:{bg:"var(--amber-dim)",color:"var(--amber)",border:"var(--amber)"},
+                    red:{bg:"var(--red-dim)",color:"var(--red)",border:"var(--red)"},
+                    dim:{bg:"var(--surface2)",color:"var(--text-faint)",border:"var(--border2)"}}[et?.color||"dim"];
+                  return (
+                    <tr key={i}>
+                      <td style={{textAlign:"center",padding:0}}>
+                        <button onClick={() => toggleWatchlist(r.name)} style={{display:"inline-block",width:"100%",height:"100%",padding:"9px 6px",background:watchlist.includes(r.name)?"var(--orange)":"transparent",color:watchlist.includes(r.name)?"#000":"var(--text-faint)",border:"none",cursor:"pointer",fontFamily:"var(--mono)",fontSize:11,fontWeight:watchlist.includes(r.name)?700:400,lineHeight:1}}>{i+1}</button>
+                      </td>
+                      <td className="name-col">{r.name}</td>
+                      <td data-group="1" className="group-start" style={{fontWeight:600}}>{r.price?.toFixed(2) ?? "—"}</td>
+                      <td data-group="1" style={{textAlign:"center",fontWeight:600,color: r.changePct > 0 ? "var(--green)" : r.changePct < 0 ? "var(--red)" : "var(--text-dim)"}}>
+                        {r.changePct == null ? "—" : `${r.changePct > 0 ? "▲" : r.changePct < 0 ? "▼" : ""}${Math.abs(r.changePct).toFixed(2)}%`}
+                      </td>
+                      <td data-group="2" className="group-start" style={{textAlign:"center"}}>
+                        <div style={{display:"flex",gap:4,justifyContent:"center"}}>
+                          <ConfPill val={r.dRsi4}/><ConfPill val={r.dRsi8}/><ConfPill val={r.dRsi14}/>
+                        </div>
+                      </td>
+                      <td data-group="2" style={{textAlign:"center"}}>
+                        <div style={{display:"flex",gap:4,justifyContent:"center"}}>
+                          <ConfPill val={r.wRsi4}/><ConfPill val={r.wRsi8}/><ConfPill val={r.wRsi14}/>
+                        </div>
+                      </td>
+                      <td data-group="2" style={{textAlign:"center"}}><Pill v={r.regime} logic={r.regime}/></td>
+                      <td data-group="2" style={{textAlign:"center"}}>
+                          {(() => {
+                          if (r.regime !== 'A' && !watchlist.includes(r.name)) return <span className="ba-pill ba-na">—</span>;
+                          const ba = baResults[r.name];
+                          if (!ba) {
+                            const hk1 = (localStorage.getItem('ld_scanner_gemini_key1') || '').trim();
+                            const hk2 = (localStorage.getItem('ld_scanner_gemini_key2') || '').trim();
+                            const hasKey = hk1.length >= 20 || hk2.length >= 20;
+                            return <span className="ba-pill ba-na" style={{fontSize:9}}>{hasKey ? 'Scan' : 'No key'}</span>;
+                          }
+                          if (ba.status === 'loading') return <span className="ba-loading" title="Gemini BA running…" />;
+                          if (ba.status === 'error' || ba.pct === null) return <span className="ba-pill ba-na" title={ba.note||''}>ERR</span>;
+                          const pct = ba.pct;
+                          const cls = pct >= 60 ? 'ba-strong' : pct >= 40 ? 'ba-moderate' : 'ba-weak';
+                          const confBadge = ba.conf === 'HIGH' ? '●' : ba.conf === 'MEDIUM' ? '◑' : '○';
+                          return (
+                            <span className={`ba-pill ${cls}`}
+                              title={`${pct}% in Regime A | ${ba.bull??'?'}/${ba.total??'?'} stocks | ${ba.conf} | ${ba.note||''}`}>
+                              {pct}% {confBadge}
+                            </span>
+                          );
+                        })()}
+                      </td>
+                      <td data-group="3" className="group-start">{r.wma20Rsi ?? "—"}</td>
+                      <td data-group="3" className={wmaClass} style={{textAlign:"center",fontWeight:600}}>{wmaText}</td>
+                      <td data-group="4" className="group-start" style={{textAlign:"center",cursor:watchlist.includes(r.name)?'pointer':'default'}}
+                        onClick={() => watchlist.includes(r.name) && runAudit(r)}
+                        title={watchlist.includes(r.name)?'Click for AI Audit narration':'Add to watchlist to enable Audit click'}>
+                        <Pill v={r.action} logic={r.action}/>
+                      </td>
+                      <td data-group="4" style={{textAlign:"center"}}>
+                        {et ? <span style={{display:"inline-block",padding:"3px 10px",borderRadius:2,fontFamily:"var(--mono)",fontSize:10,fontWeight:600,background:vs.bg,color:vs.color,border:`1px solid ${vs.border}`}}>{et.label}</span> : "—"}
+                      </td>
+                      <td data-group="4" style={{fontSize:10,color:"var(--text-dim)",minWidth:180}}>{et?.detail ?? "—"}</td>
+                      {/* ── V3D ADD-ON: HA Band Signal + Reasoning ── */}
+                      {(() => {
+                        const ha = computeHABandSignal(r, vixPrice);
+                        if (!ha) return (
+                          <>
+                            <td data-group="5" className="ha-sep group-start" style={{textAlign:"center"}}><span className="ha-pill ha-signal-neutral">NO DATA</span></td>
+                            <td data-group="5"><span className="ha-reason" style={{color:"var(--text-faint)"}}>Insufficient daily close history for HA Band computation (need 22+ days)</span></td>
+                          </>
+                        );
+                        const pillCls = ha.signalClass === 'buy' ? 'ha-signal-buy'
+                          : ha.signalClass === 'sell' ? 'ha-signal-sell'
+                          : ha.signalClass === 'watch' ? 'ha-signal-watch'
+                          : 'ha-signal-neutral';
+                        const zoneBadge = ha.zone === 'BULL' ? '🟢'
+                          : ha.zone === 'CAUTION' ? '🟡'
+                          : ha.zone === 'BEAR' ? '🔴'
+                          : '🟣';
+                        return (
+                          <>
+                            <td data-group="5" className="ha-sep group-start" style={{textAlign:"center",verticalAlign:"middle"}}>
+                              <span className={`ha-pill ${pillCls}`} title={`Zone: ${ha.zone} | SMA8: ${ha.sma8} | 21SMA: ${ha.sma21}`}>
+                                {ha.signal}
+                              </span>
+                              <div style={{marginTop:3,fontSize:9,fontFamily:"var(--mono)",color:"var(--text-faint)"}}>
+                                {zoneBadge} {ha.zone}
+                              </div>
+                            </td>
+                            <td data-group="5" style={{verticalAlign:"middle"}}>
+                              <span className="ha-reason">{ha.reason}</span>
+                              <div style={{marginTop:3,fontFamily:"var(--mono)",fontSize:9,color:"var(--text-faint)"}}>
+                                SMA8: {ha.sma8} · 21SMA: {ha.sma21} · HA: {ha.haBull ? '🟢 Bull' : '🔴 Bear'}
+                              </div>
+                            </td>
+                          </>
+                        );
+                      })()}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          </div>
+        ) : phase === 'init' && (
+          <div className="empty-state">
+            <div className="big-icon">📡</div>
+            <h2>Ready to Scan</h2>
+            <p>Fetches NSE live prices + index close files for all 139 indices.</p>
+          </div>
+        )}
+      </div>
+
+      {/* ── Audit Modal ── */}
+      {auditModal.show && (
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.6)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={() => setAuditModal({...auditModal, show: false})}>
+          <div style={{background:'var(--surface)',border:'2px solid var(--orange)',borderRadius:6,maxWidth:700,width:'100%',maxHeight:'90vh',overflowY:'auto',padding:24,position:'relative',fontFamily:'var(--mono)',fontSize:12,lineHeight:1.6}} onClick={e => e.stopPropagation()}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16,paddingBottom:12,borderBottom:'1px solid var(--border2)'}}>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
+                <span style={{fontSize:18}}>🔍</span>
+                <span style={{fontWeight:700,fontSize:15}}>AI Audit: {auditModal.name}</span>
+              </div>
+              <button onClick={() => setAuditModal({...auditModal, show: false})}
+                style={{background:'transparent',border:'1px solid var(--border2)',color:'var(--text-dim)',fontSize:16,cursor:'pointer',width:28,height:28,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:3}}>✕</button>
+            </div>
+            {auditModal.loading ? (
+              <div style={{textAlign:'center',padding:'40px 20px'}}>
+                <div className="ba-loading" style={{width:24,height:24,borderWidth:3,marginBottom:16}}></div>
+                <div style={{color:'var(--text-dim)',fontSize:12}}>Running full audit on {auditModal.name}…</div>
+              </div>
+            ) : auditModal.error ? (
+              <div style={{padding:16,background:'var(--red-dim)',border:'1px solid var(--red)',borderRadius:4,color:'var(--red)'}}>
+                <strong>Error:</strong> {auditModal.error}
+              </div>
+            ) : (
+              <div style={{whiteSpace:'pre-wrap',wordBreak:'break-word',fontFamily:'var(--mono)',fontSize:11,color:'var(--text)',lineHeight:1.65}}>
+                {auditModal.result}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 4.6 Mount Scanner into DOM
+// ═══════════════════════════════════════════════════════════════
+ReactDOM.createRoot(document.getElementById('root')).render(<Scanner />);
+</script>
+
+<!-- ════════════════════════════════════════════ -->
+<!--  5. PWA — SERVICE WORKER & INSTALL PROMPT   -->
+<!-- ════════════════════════════════════════════ -->
+<script>
+// ── 5.1 Service Worker Registration ──
+if ('serviceWorker' in navigator) {
+  // Skip SW in sandboxed preview environments (e.g. Claude, CodePen, StackBlitz)
+  const _swHost = location.hostname;
+  const _swSkip = _swHost.includes('claudeusercontent.com') ||
+                  _swHost.includes('codepen.io') ||
+                  _swHost.includes('stackblitz.io') ||
+                  _swHost === '';
+  if (!_swSkip) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').then(reg => {
+        console.log('[LD Scanner] SW registered:', reg.scope);
+      }).catch(err => console.warn('[LD Scanner] SW failed:', err));
+    });
+  } else {
+    console.log('[LD Scanner] SW skipped — preview environment detected (' + _swHost + ')');
+  }
+}
+
+// ── 5.2 Deferred Install Prompt ──
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallBanner();
+});
+
+function showInstallBanner() {
+  if (document.getElementById('pwa-install-bar')) return;
+  const bar = document.createElement('div');
+  bar.id = 'pwa-install-bar';
+  bar.style.cssText = `
+    position:fixed;bottom:0;left:0;right:0;z-index:9999;
+    background:#faf7f0;border-top:2px solid #d4880f;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 20px;font-family:'IBM Plex Mono',monospace;font-size:12px;
+    color:#1a1a1a;gap:12px;
+  `;
+  bar.innerHTML = `
+    <span style="color:#d4880f;font-weight:700;letter-spacing:1px;">⚡ INSTALL APP</span>
+    <span style="color:#222222;flex:1">Install Lie Detector Scanner for offline access & home screen icon.</span>
+    <button id="pwa-install-btn" style="background:#d4880f;color:#fff;border:none;padding:7px 18px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase;">Install</button>
+    <button id="pwa-dismiss-btn" style="background:transparent;color:#222222;border:1px solid #d0c8b8;padding:7px 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;">✕</button>
+  `;
+  document.body.appendChild(bar);
+  document.getElementById('pwa-install-btn').addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    bar.remove();
+  });
+  document.getElementById('pwa-dismiss-btn').addEventListener('click', () => bar.remove());
+}
+
+window.addEventListener('appinstalled', () => {
+  const bar = document.getElementById('pwa-install-bar');
+  if (bar) bar.remove();
+  console.log('[LD Scanner] App installed!');
+});
+</script>
+
+<!-- ════════════════════════════════════════════════ -->
+<!--  6. TAB SWITCHING + BREADTH SCANNER            -->
+<!-- ════════════════════════════════════════════════ -->
+<!-- ── 6.1 Tab Switching ── -->
+<script>
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('.tab-btn[onclick*="' + name + '"]').classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'breadth' && !window._bpInited) { window._bpInited = true; initBreadthScanner(); }
+  if (name === 'ttf' && window.TTFScanner && !window._ttfInited) { window._ttfInited = true; if (typeof TTFScanner._loadCache === 'function') TTFScanner._loadCache(); }
+}
+</script>
+
+<script>
+// ═══════════════════════════════════════
+// 6.2 MARKET BREADTH SCANNER
+// ═══════════════════════════════════════
+
+const BP_WEEKS = ['Mar 1','Mar 8','Mar 15','Mar 22','Mar 29','Apr 5','Apr 12','Apr 19','Apr 26','May 3','May 10','May 17','May 24'];
+
+const BP_DATA = {
+  large: [68, 71, 74, 72, 69, 65, 61, 58, 55, 54, 57, 59, 62],
+  mid:   [55, 58, 62, 60, 54, 48, 44, 41, 38, 37, 40, 43, 47],
+  small: [42, 45, 50, 48, 42, 36, 31, 28, 25, 24, 28, 32, 36]
+};
+
+const BP_SECTORS = [
+  {name:'IT',rsi:78,sma:71},{name:'PHARMA',rsi:74,sma:68},
+  {name:'AUTO',rsi:68,sma:63},{name:'BANKING',rsi:63,sma:58},
+  {name:'FMCG',rsi:61,sma:59},{name:'INFRA',rsi:58,sma:54},
+  {name:'METAL',rsi:54,sma:51},{name:'REALTY',rsi:52,sma:49},
+  {name:'ENERGY',rsi:47,sma:45},{name:'TELECOM',rsi:44,sma:46},
+  {name:'MEDIA',rsi:38,sma:42},{name:'PSU BANK',rsi:35,sma:39}
+];
+
+const BP_MACRO = [
+  {icon:'📈',label:'GDP GROWTH',value:'7.2%',trend:'↑ Q4 FY25',status:'pos'},
+  {icon:'🏦',label:'RBI RATE',value:'6.25%',trend:'↓ Cut 25bps',status:'pos'},
+  {icon:'🏭',label:'PMI MFG',value:'58.5',trend:'↑ 3yr high',status:'pos'},
+  {icon:'💰',label:'GST COLLECT',value:'₹2.1L Cr',trend:'↑ 12% YoY',status:'pos'},
+  {icon:'💱',label:'USD/INR',value:'83.4',trend:'→ Stable',status:'neu'}
+];
+
+let bpChartInst = null;
+
+function bpRegime(pct) {
+  if (pct >= 60) return {label:'BULLISH',cls:'BULL',color:'g'};
+  if (pct >= 40) return {label:'SIDEWAYS',cls:'SIDE',color:'y'};
+  return {label:'BEARISH',cls:'BEAR',color:'r'};
+}
+
+function bpPosSize(cls) {
+  if (cls === 'BULL') return {pct:'80–100%',label:'FULL POSITION',color:'g'};
+  if (cls === 'SIDE') return {pct:'40–60%',label:'HALF POSITION',color:'y'};
+  return {pct:'10–25%',label:'MICRO POSITION',color:'r'};
+}
+
+function renderBpCards() {
+  const latest = {l:BP_DATA.large.at(-1),m:BP_DATA.mid.at(-1),s:BP_DATA.small.at(-1)};
+  const prev = {l:BP_DATA.large.at(-2),m:BP_DATA.mid.at(-2),s:BP_DATA.small.at(-2)};
+  const caps = [
+    {k:'l',label:'LARGECAP',desc:'NIFTY 100',cls:'large'},
+    {k:'m',label:'MIDCAP',desc:'NIFTY MIDCAP 150',cls:'mid'},
+    {k:'s',label:'SMALLCAP',desc:'NIFTY SMALLCAP 250',cls:'small'}
+  ];
+  document.getElementById('bpCards').innerHTML = caps.map(c => {
+    const pct = latest[c.k], chg = (pct - prev[c.k]).toFixed(1);
+    const reg = bpRegime(pct), pos = bpPosSize(reg.cls);
+    return `<div class="bp-card ${c.cls} ${reg.cls === 'BULL' ? 'bull' : reg.cls === 'BEAR' ? 'bear' : 'side'}">
+      <div class="bp-chead"><div><div class="bp-cname ${c.cls}">${c.label}</div><div style="font-size:10px;color:var(--bp-muted);font-family:'Share Tech Mono';">${c.desc}</div></div><div class="bp-rbadge ${reg.cls}">${reg.label}</div></div>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;">
+        <div><div class="bp-pct-big ${reg.color}">${pct}<span style="font-size:0.6em;">%</span></div><div class="bp-pct-lbl">above 40W EMA</div></div>
+        <div style="text-align:right;"><div class="bp-chip ${parseFloat(chg)>=0?'up':'dn'}">${parseFloat(chg)>=0?'▲':'▼'} ${Math.abs(chg)}% WoW</div><div class="bp-pslbl" style="margin-top:6px;">Position Size</div><div class="bp-psval ${pos.color}">${pos.pct}</div></div>
+      </div>
+      <div class="bp-ptrack"><div class="bp-pfill ${reg.color}" style="width:${pct}%;"></div></div></div>`;
+  }).join('');
+}
+
+function renderBpStrats() {
+  const avg = (BP_DATA.large.at(-1) + BP_DATA.mid.at(-1) + BP_DATA.small.at(-1)) / 3;
+  const overall = bpRegime(avg);
+  const strats = [
+    {regime:'BULL',icon:'🚀',title:'BULLISH STRATEGY',color:'g',
+      rules:['Hold positions 3–12 months (ride the wave)','Sectors: RSI>65 weekly = entry candidates','RSI 70–85 = multibagger acceleration zone','Buy breakouts above prior swing highs','Use ATH crosses as confirmation signals']},
+    {regime:'SIDE',icon:'↔️',title:'SIDEWAYS STRATEGY',color:'y',
+      rules:['Trade range: buy support, sell resistance','Prefer Largecap over Mid/Small','Sector rotate into pockets of strength','Tight stop losses (2–3% max risk)','Wait for breadth to break above 60%']},
+    {regime:'BEAR',icon:'🛡️',title:'BEARISH STRATEGY',color:'r',
+      rules:['Fast rotation: enter/exit in days not months','Only trade with momentum, never against','Sector rotation ultra-fast (3–5 day trades)','Cash is a position — stay defensive','Watch for breadth divergence (reversal sign)']}
+  ];
+  document.getElementById('bpStrats').innerHTML = strats.map(s => {
+    const active = s.regime === overall.cls;
+    return `<div class="bp-scard ${active?'active':''}">
+      ${active ? '<div style="font-family:\'Share Tech Mono\';font-size:9px;color:var(--bp-accent);margin-bottom:8px;">▶ ACTIVE STRATEGY</div>' : ''}
+      <div class="bp-shead"><div class="bp-sicon">${s.icon}</div><div class="bp-stitle2 ${s.color}">${s.title}</div></div>
+      ${s.rules.map(r => `<div class="bp-srule">${r}</div>`).join('')}
+      <div class="bp-psize"><div class="bp-pslbl">POSITION SIZE</div><div class="bp-psval ${s.color}">${bpPosSize(s.regime).pct} <span style="font-size:10px;color:var(--bp-muted);">${bpPosSize(s.regime).label}</span></div></div></div>`;
+  }).join('');
+}
+
+function renderBpSectors() {
+  const sorted = [...BP_SECTORS].sort((a,b) => b.rsi - a.rsi);
+  document.getElementById('bpSGrid').innerHTML = sorted.map(s => {
+    let tag, cls, rsiCls, fill;
+    if (s.rsi >= 70 && s.rsi <= 85) { tag='MULTIBAGGER'; cls='mbag'; rsiCls='hot'; fill='var(--bp-side)'; }
+    else if (s.rsi >= 65) { tag='LEADER'; cls='leader'; rsiCls='lead'; fill='var(--bp-bull)'; }
+    else if (s.rsi >= 50) { tag='WATCH'; cls=''; rsiCls='cool'; fill='var(--bp-accent)'; }
+    else { tag='AVOID'; cls=''; rsiCls='cold'; fill='var(--bp-bear)'; }
+    const up = s.rsi > s.sma;
+    return `<div class="bp-scard2 ${cls}"><div class="bp-sname">${s.name}</div><div class="bp-srsi ${rsiCls}">${s.rsi}</div><div style="font-size:9px;color:var(--bp-muted);font-family:'Share Tech Mono';">SMA:${s.sma} ${up ? '<span style="color:var(--bp-bull)">▲</span>' : '<span style="color:var(--bp-bear)">▼</span>'}</div><div class="bp-rbar"><div class="bp-rfill" style="width:${s.rsi}%;background:${fill};"></div></div><div class="bp-stag" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--bp-muted);">${tag}</div></div>`;
+  }).join('');
+}
+
+function renderBpMacro() {
+  document.getElementById('bpMGrid').innerHTML = BP_MACRO.map(m =>
+    `<div class="bp-mcard"><div class="bp-micon">${m.icon}</div><div class="bp-mlbl">${m.label}</div><div class="bp-mval ${m.status}">${m.value}</div><div class="bp-mtrend" style="color:${m.status==='pos'?'var(--bp-bull)':m.status==='neg'?'var(--bp-bear)':'var(--bp-side)'}">${m.trend}</div></div>`
+  ).join('');
+  const pos = BP_MACRO.filter(m=>m.status==='pos').length;
+  document.getElementById('bpScore').innerHTML = `MACRO SCORE: <span style="color:${pos>=4?'var(--bp-bull)':pos>=3?'var(--bp-side)':'var(--bp-bear)'}">${pos}/${BP_MACRO.length}</span>`;
+}
+
+function renderBpChart() {
+  if (bpChartInst) { bpChartInst.destroy(); bpChartInst = null; }
+  const canvas = document.getElementById('bpChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const gL = ctx.createLinearGradient(0,0,0,220); gL.addColorStop(0,'rgba(0,212,255,0.3)'); gL.addColorStop(1,'rgba(0,212,255,0)');
+  const gM = ctx.createLinearGradient(0,0,0,220); gM.addColorStop(0,'rgba(168,85,247,0.3)'); gM.addColorStop(1,'rgba(168,85,247,0)');
+  const gS = ctx.createLinearGradient(0,0,0,220); gS.addColorStop(0,'rgba(255,107,53,0.3)'); gS.addColorStop(1,'rgba(255,107,53,0)');
+  bpChartInst = new Chart(ctx, {
+    type:'line',
+    data:{labels:BP_WEEKS,datasets:[
+      {label:'Largecap',data:BP_DATA.large,borderColor:'#00d4ff',backgroundColor:gL,borderWidth:2,pointRadius:3,pointHoverRadius:5,fill:true,tension:0.4},
+      {label:'Midcap',data:BP_DATA.mid,borderColor:'#a855f7',backgroundColor:gM,borderWidth:2,pointRadius:3,pointHoverRadius:5,fill:true,tension:0.4},
+      {label:'Smallcap',data:BP_DATA.small,borderColor:'#ff6b35',backgroundColor:gS,borderWidth:2,pointRadius:3,pointHoverRadius:5,fill:true,tension:0.4}
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      animation:{duration:1000,easing:'easeInOutQuart'},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#faf7f0',borderColor:'#d0c8b8',borderWidth:1,titleFont:{family:'Share Tech Mono',size:11},bodyFont:{family:'Rajdhani',size:12},titleColor:'#1a1a1a',bodyColor:'#1a1a1a'}},
+      scales:{x:{grid:{color:'rgba(208,200,184,0.5)',lineWidth:1},ticks:{color:'#666666',font:{family:'Share Tech Mono',size:10}},border:{color:'#d0c8b8'}},y:{min:0,max:100,grid:{color:'rgba(208,200,184,0.5)',lineWidth:1},ticks:{color:'#666666',font:{family:'Share Tech Mono',size:10},callback:v=>v+'%',stepSize:20},border:{color:'#d0c8b8'}}}
+    },
+    plugins:[{
+      id:'bpRefLines',
+      afterDraw(chart) {
+        const {ctx,chartArea:{left,right,top,bottom},scales:{y}} = chart;
+        const l = (val,color,label) => { const yp=y.getPixelForValue(val); ctx.save(); ctx.setLineDash([6,4]); ctx.strokeStyle=color; ctx.lineWidth=1; ctx.globalAlpha=0.6; ctx.beginPath(); ctx.moveTo(left,yp); ctx.lineTo(right,yp); ctx.stroke(); ctx.globalAlpha=0.8; ctx.font='9px Share Tech Mono'; ctx.fillStyle=color; ctx.fillText(label,left+4,yp-4); ctx.restore(); };
+        l(60,'#2e7d32','60% BULL'); l(40,'#c62828','40% BEAR');
+        const y60=y.getPixelForValue(60), y40=y.getPixelForValue(40);
+        ctx.save(); ctx.fillStyle='rgba(230,81,0,0.05)'; ctx.fillRect(left,y60,right-left,y40-y60); ctx.restore();
+      }
+    }]
+  });
+}
+
+function updateBpVerdict() {
+  const avg = (BP_DATA.large.at(-1) + BP_DATA.mid.at(-1) + BP_DATA.small.at(-1)) / 3;
+  const reg = bpRegime(avg);
+  const v = document.getElementById('bpVerdict');
+  const vt = document.getElementById('bpVtext');
+  const va = document.getElementById('bpVaction');
+  const vl = document.getElementById('bpVlabel');
+  v.className = 'bp-verdict ' + reg.cls.toLowerCase();
+  if (reg.cls === 'BULL') {
+    vt.innerHTML = '⚡ OVERALL MARKET: <span style="color:var(--bp-bull);font-weight:700;">BULLISH</span> — Breadth expanding across all caps';
+    va.textContent = 'STRATEGY: Full position sizing. Focus on RSI 65+ sectors. Ride wave with wide stops.';
+    vl.style.color = 'var(--bp-bull)'; vl.textContent = 'BULLISH';
+  } else if (reg.cls === 'BEAR') {
+    vt.innerHTML = '⚡ OVERALL MARKET: <span style="color:var(--bp-bear);font-weight:700;">BEARISH</span> — Majority stocks below 40W EMA';
+    va.textContent = 'STRATEGY: Micro position sizes only. Fast sector rotation in days. Cash is king.';
+    vl.style.color = 'var(--bp-bear)'; vl.textContent = 'BEARISH';
+  } else {
+    vt.innerHTML = '⚡ OVERALL MARKET: <span style="color:var(--bp-side);font-weight:700;">SIDEWAYS</span> — Breadth mixed, no clear direction';
+    va.textContent = 'STRATEGY: Reduced position sizes. Wait for breadth confirmation. Trade ranges only.';
+    vl.style.color = 'var(--bp-side)'; vl.textContent = 'SIDEWAYS';
+  }
+}
+
+function bpClock() {
+  const now = new Date();
+  document.getElementById('bpUpdateTime').textContent = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('bpFooterTime').textContent = now.toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+}
+
+// ── Sector-to-NSE-Index mapping ──
+const BP_SECTOR_2_INDEX = {
+  'IT':'NIFTY IT','PHARMA':'NIFTY PHARMA','AUTO':'NIFTY AUTO',
+  'BANKING':'NIFTY BANK','FMCG':'NIFTY FMCG','INFRA':'NIFTY INFRASTRUCTURE',
+  'METAL':'NIFTY METAL','REALTY':'NIFTY REALTY','ENERGY':'NIFTY ENERGY',
+  'TELECOM':'NIFTY TELECOM','MEDIA':'NIFTY MEDIA','PSU BANK':'NIFTY PSU BANK'
+};
+function bpNorm(n){return (n||'').replace(/[^a-z0-9]/gi,'').toLowerCase();}
+
+function renderBpRecommendations() {
+  const container = document.getElementById('bpRecsGrid');
+  const note = document.getElementById('bpRecsNote');
+
+  // Load cached scanner results for extra enrichment
+  let scannerData = {};
+  try {
+    const raw = localStorage.getItem('ld_scanner_cache');
+    if (raw) { const snap = JSON.parse(raw); if (snap.results) scannerData = snap.results; }
+  } catch(_) {}
+
+  const reg = bpRegime((BP_DATA.large.at(-1) + BP_DATA.mid.at(-1) + BP_DATA.small.at(-1)) / 3);
+
+  const sorted = [...BP_SECTORS].sort((a,b) => b.rsi - a.rsi);
+  const tiers = { sbuy: [], buy: [], watch: [], avoid: [] };
+
+  sorted.forEach(s => {
+    const idxName = BP_SECTOR_2_INDEX[s.name];
+    const ba = scannerData[idxName ? bpNorm(idxName) : ''] || {};
+    const baPct = ba.regime_a_weight_pct;
+    const baNote = baPct != null ? ` · ${baPct}% in Regime A` : '';
+    const entry = { name: idxName || s.name, sector: s.name, rsi: s.rsi, baPct, baNote };
+    if (s.rsi >= 70 && s.rsi <= 85) tiers.sbuy.push(entry);
+    else if (s.rsi >= 65) tiers.buy.push(entry);
+    else if (s.rsi >= 50) tiers.watch.push(entry);
+    else tiers.avoid.push(entry);
+  });
+
+  // In BEAR regime, drop non-multibagger tiers; in SIDE, only sbuy + buy
+  const show = { sbuy: true, buy: reg.cls !== 'BEAR', watch: reg.cls === 'BULL' };
+  if (reg.cls === 'BEAR') note.textContent = '⚠ BEAR MARKET — Only MULTIBAGGER zone sectors (RSI 70-85) shown. Reduce position sizes.';
+  else if (reg.cls === 'SIDE') note.textContent = '↔️ SIDEWAYS — MULTIBAGGER + LEADER sectors shown. Wait for breadth confirmation above 60% for full allocation.';
+  else note.textContent = '🚀 BULL MARKET — All tiers actionable. Strong Buy + Buy sectors are primary candidates. Refresh after Lie Detector scan for % Regime A data.';
+
+  const tierConfig = [
+    {key:'sbuy',  title:'STRONG BUY',     cls:'sbuy',  icon:'🟢'},
+    {key:'buy',   title:'BUY',            cls:'buy',   icon:'🔵'},
+    {key:'watch', title:'WATCH',          cls:'watch', icon:'🟡'},
+  ];
+
+  let hasAny = false;
+  container.innerHTML = tierConfig.map(tc => {
+    const items = tiers[tc.key];
+    if (!show[tc.key] || !items.length) return '';
+    hasAny = true;
+    return `<div class="bp-recs-tier">
+      <div class="bp-recs-tier-title ${tc.cls}">${tc.icon} ${tc.title}</div>
+      ${items.map(item => `<div class="bp-recs-item">
+        <div><div class="bp-recs-iname">${item.name}</div><div class="bp-recs-isector">${item.sector}${item.baNote}</div></div>
+        <div class="bp-recs-irsi ${tc.cls}">${item.rsi}</div>
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+
+  if (!hasAny) {
+    container.innerHTML = `<div class="bp-recs-empty">No sectors currently meeting criteria for <strong>${reg.label}</strong> regime.</div>`;
+  }
+}
+
+function initBreadthScanner() {
+  renderBpCards();
+  renderBpStrats();
+  renderBpSectors();
+  renderBpMacro();
+  renderBpChart();
+  updateBpVerdict();
+  renderBpRecommendations();
+  bpClock();
+  setInterval(bpClock, 1000);
+  setTimeout(() => {
+    document.querySelectorAll('.bp-pfill').forEach(el => {
+      const w = el.style.width; el.style.width = '0';
+      setTimeout(() => el.style.width = w, 100);
+    });
+  }, 200);
+}
+
+// Auto-init on page load since breadth tab is active by default
+initBreadthScanner();
+</script>
+
+<!-- ════════════════════════════════════════════════ -->
+<!--  7. TTF RSI WEEKLY SCANNER                    -->
+<!-- ════════════════════════════════════════════════ -->
+<script>
+(function(win) {
+  'use strict';
+  // ── 7.1 Configuration ──
+  var CORS        = 'https://cors-proxy-xi-ten.vercel.app/api/proxy?url=';
+  var NSE_API     = 'https://www.nseindia.com/api/allIndices';
+  var CSV_URL     = 'https://archives.nseindia.com/content/indices/ind_close_all_';
+  var RSI_PERIODS = [4, 6, 8];
+  var FETCH_DAYS  = 100;
+  var BATCH_SIZE  = 5;
+  var BATCH_DELAY = 400;
+  var $ = function(id) { return document.getElementById(id); };
+  var statusEl = $('status'), headEl = $('tableHead'), bodyEl = $('tableBody');
+  var scanBtn = $('scanBtn'), resetBtn = $('resetBtn'), tsEl = $('ts'), rsi8Filter = $('rsi8Filter');
+  var CACHE_KEY = 'ttf_scanner_cache';
+  var _lastResults = null, _sortKey = 'name', _sortDir = 'asc', _debugData = {};
+  function sleep(ms)         { return new Promise(function(r) { setTimeout(r, ms); }); }
+  function normalize(n)      { return (n||'').replace(/[^a-z0-9]/gi,'').toLowerCase(); }
+  function classifyIndex(n)  { var s=n.toLowerCase(); if (/g[- ]?sec|bond|aaa|t[- ]?bill|treasury|yield|debt|liquid|overnight|money\s*market|sovereign/.test(s)) return 'B'; if (/vix|futures?|div\s*point/.test(s)) return 'O'; return 'E'; }
+  function setStatus(html,t) { statusEl.innerHTML = html; statusEl.className = 'status' + (t ? ' ' + t : ''); }
+  function pad(v)            { return String(v).padStart(2, '0'); }
+  function fmtDDMMYYYY(d)    { return pad(d.getDate()) + pad(d.getMonth()+1) + d.getFullYear(); }
+  function genTradingDays(n) { var a=[],d=new Date(); while(a.length<n){if(d.getDay()!==0&&d.getDay()!==6)a.push(new Date(d));d.setDate(d.getDate()-1);} return a; }
+  // ── 7.2 RSI Calculation (Wilder) ──
+  function calcRSI(closes, period) {
+    var v = closes.filter(function(x) { return x != null && !isNaN(x); });
+    if (v.length < period + 1) return [];
+    var rsis = []; var gains = 0, losses = 0;
+    for (var i = 1; i <= period; i++) {
+      var d = v[i] - v[i - 1];
+      if (d > 0) gains += d; else losses -= d;
+    }
+    var ag = gains / period, al = losses / period;
+    rsis.push(al === 0 ? 100 : parseFloat((100 - 100 / (1 + ag / al)).toFixed(2)));
+    for (var i = period + 1; i < v.length; i++) {
+      var d = v[i] - v[i - 1];
+      ag = (ag * (period - 1) + Math.max(d, 0)) / period;
+      al = (al * (period - 1) + Math.abs(Math.min(d, 0))) / period;
+      rsis.push(al === 0 ? 100 : parseFloat((100 - 100 / (1 + ag / al)).toFixed(2)));
+    }
+    return rsis;
+  }
+  // ── 7.3 Zone Helpers ──
+  function weeklySubCol(v)  { if (v == null) return 0; if (v >= 60) return 2; if (v >= 50) return 1; return 0; }
+  function weeklyCellClass(v, c) {
+    if (weeklySubCol(v) !== c || v == null) return '';
+    if (v >= 60) return 'zone-gte60'; if (v > 50) return 'zone-gt50';
+    if (v === 50) return 'zone-eq50'; if (v >= 45) return 'zone-45-50'; return 'zone-lt45';
+  }
+  function dailyClass(v) {
+    if (v == null) return 'daily-neutral'; if (v > 60) return 'daily-darkgreen';
+    if (v > 50) return 'daily-green'; return 'daily-neutral';
+  }
+  // ── 7.4 Data Pipeline (OHLC Fetch, Weekly Build, Row Computation) ──
+  function getOHLC(name, dailyMap) {
+    var key = name.toLowerCase();
+    var entries = dailyMap[key];
+    if (!entries || entries.length < 3) return null;
+    entries.sort(function(a, b) {
+      var da = a.substring(4,8) + a.substring(2,4) + a.substring(0,2);
+      var db = b.substring(4,8) + b.substring(2,4) + b.substring(0,2);
+      return da < db ? -1 : da > db ? 1 : 0;
+    });
+    var opens = [], highs = [], lows = [], closes = [], dates = [], dsList = [];
+    for (var i = 0; i < entries.length; i++) {
+      var parts = entries[i].split('|');
+      opens.push(parseFloat(parts[1]));
+      highs.push(parseFloat(parts[2]));
+      lows.push(parseFloat(parts[3]));
+      closes.push(parseFloat(parts[4]));
+      var ds = parts[0];
+      dsList.push(ds);
+      dates.push(new Date(parseInt(ds.substring(4,8),10), parseInt(ds.substring(2,4),10)-1, parseInt(ds.substring(0,2),10)));
+    }
+    return { opens: opens, highs: highs, lows: lows, closes: closes, dates: dates, dsList: dsList };
+  }
+  function buildWeeklyClosesCalendar(closes, dates) {
+    var wkMap = {};
+    for (var i = 0; i < dates.length; i++) {
+      var d = dates[i], day = d.getDay();
+      var mon = new Date(d);
+      mon.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
+      var key = mon.getFullYear() + pad(mon.getMonth()+1) + pad(mon.getDate());
+      wkMap[key] = closes[i];
+    }
+    var keys = Object.keys(wkMap).sort();
+    var wc = [];
+    for (var k = 0; k < keys.length; k++) wc.push(wkMap[keys[k]]);
+    return wc;
+  }
+  function computeRow(name, priceMap, dailyMap) {
+    var ohlc = getOHLC(name, dailyMap);
+    if (!ohlc) return null;
+    var price = (priceMap[normalize(name)]||{}).price;
+    var row = { name: name, price: price, type: classifyIndex(name) };
+    var d4 = calcRSI(ohlc.closes, 4), d6 = calcRSI(ohlc.closes, 6), d8 = calcRSI(ohlc.closes, 8);
+    row.d4 = d4.length ? d4[d4.length-1] : null;
+    row.d6 = d6.length ? d6[d6.length-1] : null;
+    row.d8 = d8.length ? d8[d8.length-1] : null;
+    var wk = buildWeeklyClosesCalendar(ohlc.closes, ohlc.dates);
+    if (wk.length >= 5) {
+      var w4 = calcRSI(wk, 4), w6 = calcRSI(wk, 6), w8 = calcRSI(wk, 8);
+      row.w4 = w4.length ? w4[w4.length-1] : null;
+      row.w6 = w6.length ? w6[w6.length-1] : null;
+      row.w8 = w8.length ? w8[w8.length-1] : null;
+      var g = '<span style="color:#1a8a4a;font-weight:700;">&#10003;</span>';
+      var r = '<span style="color:#cc3344;font-weight:700;">&#10007;</span>';
+      row.rsiStatus = (row.w4 > 50 ? g : r) + ' ' + (row.w6 > 50 ? g : r) + ' ' + (row.w8 > 50 ? g : r);
+      row._rsiSort = (row.w4 > 50 ? 1 : 0) + (row.w6 > 50 ? 1 : 0) + (row.w8 > 50 ? 1 : 0);
+      if (w8.length >= 2) {
+        var prev = w8[w8.length-2], curr = w8[w8.length-1];
+        if (curr > 50 && prev <= 50) { row.action = 'Crossover'; row._actSort = 1; }
+        else if (curr < 50 && prev >= 50) { row.action = 'Crossunder'; row._actSort = 2; }
+        else { row.action = 'Watch'; row._actSort = 3; }
+      } else { row.action = 'Watch'; row._actSort = 3; }
+    }
+    _debugData[name] = { cls: ohlc.closes, ds: ohlc.dsList, wk: wk, row: row };
+    return row;
+  }
+  // ── 7.5 CSV Batch Fetcher ──
+  function fetchCSVBatches(tradingDays, dailyMap, onDone) {
+    var total = tradingDays.length, idx = 0, errors = 0;
+    function batch() {
+      if (idx >= total) { onDone(errors); return; }
+      var slice = tradingDays.slice(idx, idx + BATCH_SIZE);
+      idx += BATCH_SIZE;
+      setStatus('<span class="spinner"></span> NSE: ' + Math.min(idx, total) + '/' + total + ' days...');
+      Promise.all(slice.map(function(td) {
+        var ds = fmtDDMMYYYY(td);
+        return fetch(CORS + encodeURIComponent(CSV_URL + ds + '.csv'), { signal: AbortSignal.timeout(10000) })
+          .then(function(r) { if (!r.ok) { errors++; return ''; } return r.text(); })
+          .then(function(text) {
+            if (!text) return;
+            var lines = text.trim().split('\n').filter(function(l) { return l.trim(); });
+            if (lines.length < 2) return;
+            for (var i = 1; i < lines.length; i++) {
+              var v = lines[i].split(',');
+              var name = v[0]?.trim().toLowerCase();
+              var open = parseFloat(v[2]), high = parseFloat(v[3]), low = parseFloat(v[4]), close = parseFloat(v[5]);
+              if (name && !isNaN(open) && !isNaN(high) && !isNaN(low) && !isNaN(close)) {
+                if (!dailyMap[name]) dailyMap[name] = [];
+                dailyMap[name].push(ds + '|' + open + '|' + high + '|' + low + '|' + close);
+              }
+            }
+          })
+          .catch(function() { errors++; });
+      })).then(function() { setTimeout(batch, BATCH_DELAY); });
+    }
+    batch();
+  }
+  function appendTodayIfMissing(dailyMap, indexList, priceMap) {
+    var todayDs = fmtDDMMYYYY(new Date());
+    for (var di = 0; di < indexList.length; di++) {
+      var key = indexList[di].key, pm = priceMap[key];
+      if (!pm || pm.price == null) continue;
+      var entries = dailyMap[indexList[di].name.toLowerCase()];
+      if (!entries) { dailyMap[indexList[di].name.toLowerCase()] = []; entries = dailyMap[indexList[di].name.toLowerCase()]; }
+      var hasToday = entries.some(function(e) { return e.indexOf(todayDs) === 0; });
+      if (!hasToday) {
+        entries.push(todayDs + '|' + (pm.open || pm.price) + '|' + (pm.high || pm.price) + '|' + (pm.low || pm.price) + '|' + pm.price);
+      }
+    }
+  }
+  // ── 7.6 Sort Engine ──
+  function sortResults(key, dir) {
+    if (!_lastResults) return;
+    _sortKey = key; _sortDir = dir;
+    var arr = _lastResults.slice();
+    arr.sort(function(a, b) {
+      var va = a[key], vb = b[key];
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      if (typeof va === 'string') return dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+      return dir === 'asc' ? va - vb : vb - va;
+    });
+    _lastResults = arr;
+    render(arr);
+  }
+  // ── 7.7 Table Builder ──
+  function render(results) {
+    _lastResults = results;
+    var ps = RSI_PERIODS, cols = 5 + ps.length * 4;
+    headEl.innerHTML = '';
+    var cg = '<colgroup>';
+    cg += '<col style="width:28px;min-width:28px;">';   // #
+    cg += '<col style="width:170px;min-width:170px;">';  // Index name
+    cg += '<col style="width:28px;min-width:28px;">';   // T
+    cg += '<col style="width:72px;min-width:72px;">';   // RSI Wk Status
+    cg += '<col style="width:80px;min-width:80px;">';   // Action Status
+    for (var ci = 0; ci < ps.length; ci++) {
+      cg += '<col style="width:46px;min-width:46px;">';  // 45-50
+      cg += '<col style="width:46px;min-width:46px;">';  // >=50
+      cg += '<col style="width:46px;min-width:46px;">';  // >=60
+      cg += '<col style="width:44px;min-width:44px;">';  // Daily
+    }
+    cg += '</colgroup>';
+    var tbl = document.getElementById('resultTable');
+    var existingCg = tbl.querySelector('colgroup');
+    if (existingCg) tbl.removeChild(existingCg);
+    tbl.insertAdjacentHTML('afterbegin', cg);
+    var display = results.filter(function(r) { return r.type === 'E' && r.name && r.name.trim() !== ''; });
+    if (rsi8Filter.checked) display = display.filter(function(r) { return r.w8 != null && r.w8 >= 45; });
+    if (!display.length) { bodyEl.innerHTML = '<tr class="empty-row"><td colspan="' + cols + '">No data.</td></tr>'; return; }
+    var b = '';
+    for (var br = 0; br < 2; br++) {
+      b += '<tr>';
+      if (br === 0) {
+        b += '<td rowspan="2" style="border:1px solid #d0c8b8;height:6px;text-align:center;font-size:9px;color:#666;font-weight:600;">#</td>';
+      }
+      var bc = 1;
+      while (bc < cols) {
+        if (br === 0 && bc === 1) {
+          b += '<td rowspan="2" style="border:1px solid #d0c8b8;height:6px;text-align:center;font-size:9px;font-weight:600;">Index</td>';
+          bc++; continue;
+        }
+        if (br === 1 && bc === 1) { bc++; continue; }
+        if (br === 0 && bc === 2) {
+          b += '<td rowspan="2" style="border:1px solid #d0c8b8;height:6px;text-align:center;font-size:9px;font-weight:600;">T</td>';
+          bc++; continue;
+        }
+        if (br === 1 && bc === 2) { bc++; continue; }
+        if (br === 0 && bc === 3) {
+          b += '<td rowspan="2" style="border:1px solid #d0c8b8;height:6px;text-align:center;font-size:9px;font-weight:600;">RSI Wkly<br>Status</td>';
+          bc++; continue;
+        }
+        if (br === 1 && bc === 3) { bc++; continue; }
+        if (br === 0 && bc === 4) {
+          b += '<td rowspan="2" style="border:1px solid #d0c8b8;height:6px;text-align:center;font-size:9px;font-weight:600;">Action<br>Status</td>';
+          bc++; continue;
+        }
+        if (br === 1 && bc === 4) { bc++; continue; }
+        if (br === 0 && bc === 5) {
+          b += '<td colspan="4" style="border:1px solid #d0c8b8;height:6px;text-align:center;font-size:9px;font-weight:600;">Weekly Zone RSI(4)</td>';
+          bc += 4; continue;
+        } else if (br === 0 && bc === 9) {
+          b += '<td colspan="4" style="border:1px solid #d0c8b8;height:6px;text-align:center;font-size:9px;font-weight:600;">Weekly Zone RSI(6)</td>';
+          bc += 4; continue;
+        } else if (br === 0 && bc === 13) {
+          b += '<td colspan="4" style="border:1px solid #d0c8b8;height:6px;text-align:center;font-size:9px;font-weight:600;">Weekly Zone RSI(8)</td>';
+          bc += 4; continue;
+        }
+        var content = (br === 1 && bc === 5) ? '45-50' : (br === 1 && bc === 6) ? '&ge;50' : (br === 1 && bc === 7) ? '&ge;60' : (br === 1 && bc === 8) ? 'D-RSI(4)' : (br === 1 && bc === 9) ? '45-50' : (br === 1 && bc === 10) ? '&ge;50' : (br === 1 && bc === 11) ? '&ge;60' : (br === 1 && bc === 12) ? 'D-RSI(6)' : (br === 1 && bc === 13) ? '45-50' : (br === 1 && bc === 14) ? '&ge;50' : (br === 1 && bc === 15) ? '&ge;60' : (br === 1 && bc === 16) ? 'D-RSI(8)' : '';
+        b += '<td style="border:1px solid #d0c8b8;height:6px;text-align:center;font-size:9px;">' + content + '</td>';
+        bc++;
+      }
+      b += '</tr>';
+    }
+    for (var ri = 0; ri < display.length; ri++) {
+      var r = display[ri];
+      b += '<tr><td style="color:#666;font-size:11px;text-align:center;">' + (ri+1) + '</td>';
+      b += '<td class="idx" style="cursor:pointer">' + r.name + '</td>';
+      var tc = r.type === 'B' ? '#d4880f' : r.type === 'O' ? '#666' : '#1a8a4a';
+      b += '<td style="color:' + tc + ';font-weight:700;font-size:11px;text-align:center;">' + (r.type || '-') + '</td>';
+      b += '<td class="rsi-cell" style="font-size:10px;letter-spacing:-0.5px;text-align:center;min-width:72px;">' + (r.rsiStatus || '-') + '</td>';
+      var aColor = r.action === 'Crossover' ? '#1a8a4a' : r.action === 'Crossunder' ? '#cc3344' : '#d4880f';
+      b += '<td class="rsi-cell" style="color:' + aColor + ';font-weight:700;font-size:10px;min-width:80px;">' + (r.action || '-') + '</td>';
+      for (var pi2 = 0; pi2 < ps.length; pi2++) {
+        var p = ps[pi2], w = r['w' + p], d = r['d' + p], sc = weeklySubCol(w);
+        for (var sci = 0; sci < 3; sci++) {
+          b += '<td class="' + weeklyCellClass(w, sci) + ' rsi-cell" style="min-width:46px;max-width:46px;overflow:hidden;">' + (sci === sc && w != null ? w.toFixed(1) : '-') + '</td>';
+        }
+        b += '<td class="' + dailyClass(d) + ' rsi-cell" style="min-width:44px;">' + (d != null ? d.toFixed(1) : '-') + '</td>';
+      }
+      b += '</tr>';
+    }
+    bodyEl.innerHTML = b;
+  }
+  // ── 7.8 Scan Completion (Sort + Render + Cascade Sort) ──
+  function completeScan(priceMap, indexList, dailyMap, sourceLabel) {
+    setStatus('<span class="spinner"></span> Computing RSI for ' + indexList.length + ' indices...');
+    appendTodayIfMissing(dailyMap, indexList, priceMap);
+    var results = [];
+    for (var i = 0; i < indexList.length; i++) {
+      if (!indexList[i].name || !indexList[i].name.trim()) continue;
+      var row = computeRow(indexList[i].name, priceMap, dailyMap);
+      if (row) results.push(row);
+    }
+      results.sort(function(a, b) { var c = (b._rsiSort || 0) - (a._rsiSort || 0); if (c !== 0) return c; return (a._actSort || 9) - (b._actSort || 9); });
+    render(results);
+    tsEl.textContent = new Date().toLocaleString();
+    setStatus('Done. <strong>' + results.length + '</strong> indices, ' + sourceLabel + '.', 'success');
+    scanBtn.disabled = false;
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ results: results, ts: new Date().toISOString() })); } catch(e) {}
+    if (typeof TTFScanner.onComplete === 'function') { try { TTFScanner.onComplete(results); } catch(e) {} }
+  }
+
+  // ── 7.9 Scan Engine (Cached or Fresh Fetch) ──
+  function runScan() {
+    if (scanBtn.disabled) return;
+    scanBtn.disabled = true;
+    var sd = window._ldScannerData;
+    if (sd && sd.dailyMap && Object.keys(sd.dailyMap).length > 10) {
+      setStatus('<span class="spinner"></span> Using cached data from Lie Detector (' + Object.keys(sd.dailyMap).length + ' dates)...');
+      completeScan(sd.priceMap, sd.indexList, sd.dailyMap, 'from Lie Detector cache');
+      return;
+    }
+    setStatus('<span class="spinner"></span> Fetching NSE index list...');
+    fetch(CORS + encodeURIComponent(NSE_API), { signal: AbortSignal.timeout(20000) })
+      .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function(json) {
+        var nseRaw = json.data || [];
+        setStatus('<span class="spinner"></span> ' + nseRaw.length + ' indices loaded.');
+        var priceMap = {}, indexList = [];
+        nseRaw.forEach(function(idx) {
+          var key = normalize(idx.index || idx.indexSymbol);
+          priceMap[key] = {
+            price: parseFloat(idx.last) || null,
+            open:  parseFloat(idx.open)  || null,
+            high:  parseFloat(idx.high)  || null,
+            low:   parseFloat(idx.low)   || null
+          };
+          indexList.push({ name: idx.index, key: key });
+        });
+        setStatus('<span class="spinner"></span> Fetching NSE daily OHLC (' + FETCH_DAYS + ' days)...');
+        var dailyMap = {};
+        fetchCSVBatches(genTradingDays(FETCH_DAYS), dailyMap, function(errors) {
+          completeScan(priceMap, indexList, dailyMap, errors + ' failed fetches');
+        });
+      })
+      .catch(function(err) { setStatus('Error: ' + err.message, 'error'); scanBtn.disabled = false; });
+  }
+  // ── 7.10 Cache Restore ──
+  function loadFromCache() {
+    try {
+      var raw = localStorage.getItem(CACHE_KEY);
+      if (raw) {
+        var snap = JSON.parse(raw);
+        if (snap.results && snap.results.length) {
+          var cleaned = snap.results.filter(function(r) { return r.name && r.name.trim() !== ''; });
+          render(cleaned);
+          tsEl.textContent = snap.ts ? new Date(snap.ts).toLocaleString() : '';
+          setStatus('Restored ' + cleaned.length + ' indices from cache. Click Scan to refresh.', 'success');
+        }
+      }
+    } catch(e) {}
+  }
+  // ── 7.11 Reset ──
+  function reset() { headEl.innerHTML = ''; bodyEl.innerHTML = ''; setStatus('Ready.'); tsEl.textContent = ''; try { localStorage.removeItem(CACHE_KEY); } catch(e) {} }
+  // ── 7.12 Debug Inspector ──
+  function showDebug(name) {
+    var dd = _debugData[name];
+    if (!dd) return;
+    $('debugTitle').textContent = name + ' — Data Inspector (compare against TV weekly chart)';
+    var h  = 'Daily entries: ' + dd.cls.length + '\n\n';
+    h    += 'Last 2 weeks daily closes (check if these match TV daily chart):\n';
+    for (var i = Math.max(0, dd.cls.length - 10); i < dd.cls.length; i++) {
+      h += '  ' + dd.ds[i].substring(0,2) + '/' + dd.ds[i].substring(2,4) + '/' + dd.ds[i].substring(4,8) + '  ' + dd.cls[i].toFixed(2) + '\n';
+    }
+    h += '\nWeekly closes (' + dd.wk.length + ' weeks, calendar Mon-Fri):\n';
+    h += '  (compare against TV weekly chart Friday closes)\n';
+    for (var wi = Math.max(0, dd.wk.length - 8); wi < dd.wk.length; wi++) {
+      h += '  Week ' + (wi+1) + '  ' + dd.wk[wi].toFixed(2) + '\n';
+    }
+    h += '\nLast daily close (CSV): ' + dd.cls[dd.cls.length-1].toFixed(2) + '\n';
+    h += 'Current price (API):    ' + (dd.row.price != null ? dd.row.price.toFixed(2) : 'N/A') + '\n';
+    h += '\nRSI values:\n';
+    h += '  Weekly RSI(4): ' + (dd.row.w4 != null ? dd.row.w4.toFixed(2) : 'N/A') + '\n';
+    h += '  Weekly RSI(6): ' + (dd.row.w6 != null ? dd.row.w6.toFixed(2) : 'N/A') + '\n';
+    h += '  Weekly RSI(8): ' + (dd.row.w8 != null ? dd.row.w8.toFixed(2) : 'N/A') + '\n';
+    h += '  Daily RSI(4):  ' + (dd.row.d4 != null ? dd.row.d4.toFixed(2) : 'N/A') + '\n';
+    h += '  Daily RSI(6):  ' + (dd.row.d6 != null ? dd.row.d6.toFixed(2) : 'N/A') + '\n';
+    h += '  Daily RSI(8):  ' + (dd.row.d8 != null ? dd.row.d8.toFixed(2) : 'N/A') + '\n';
+    $('debugContent').textContent = h;
+    $('debugModal').style.display = 'block';
+  }
+  // ── 7.13 Public API & Event Binding ──
+  var TTFScanner = { run: runScan, reset: reset, onComplete: null, _results: function() { return _lastResults; }, _loadCache: loadFromCache };
+  win.TTFScanner = TTFScanner;
+  scanBtn.addEventListener('click', runScan);
+  resetBtn.addEventListener('click', reset);
+  rsi8Filter.addEventListener('change', function() { if (_lastResults) render(_lastResults); });
+  headEl.addEventListener('click', function(e) {
+    var th = e.target.closest('th[data-sort]');
+    if (!th || !_lastResults) return;
+    var key = th.getAttribute('data-sort');
+    var dir = _sortKey === key && _sortDir === 'asc' ? 'desc' : 'asc';
+    sortResults(key, dir);
+  });
+  bodyEl.addEventListener('click', function(e) {
+    var td = e.target.closest('td.idx');
+    if (td) showDebug(td.textContent.trim());
+  });
+  loadFromCache();
+})(window);
+</script>
+
+</body>
+</html>
