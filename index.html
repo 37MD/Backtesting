@@ -106,6 +106,8 @@ var NSE_API='https://www.nseindia.com/api/allIndices';
 var CSV_URL='https://archives.nseindia.com/content/indices/ind_close_all_';
 var YAHOO_WK='https://query1.finance.yahoo.com/v8/finance/chart/SYM?interval=1wk&range=2y';
 var YAHOO_DY='https://query1.finance.yahoo.com/v8/finance/chart/SYM?interval=1d&range=6mo';
+var YAHOO_Q2='https://query2.finance.yahoo.com/v8/finance/chart/SYM?interval=1d&range=6mo';
+var YAHOO_Q7='https://query2.finance.yahoo.com/v7/finance/quote?symbols=SYM';
 var BATCH=5,DELAY=400,FETCH_DAYS=100;
 var pf={cash:1000000,pos:{},trades:[],eq:[{d:new Date().toISOString(),v:1000000}]};
 var scanR=[];
@@ -200,13 +202,18 @@ function computeRow(closes,name){
 }
 
 async function fetchYahooCloses(sym){
-  try{
-    var url=YAHOO_DY.replace('SYM',sym);
-    var r=await fetchProxy(url,{signal:AbortSignal.timeout(15000)});
-    var j=await r.json();
-    var c=(j.chart&&j.chart.result&&j.chart.result[0]&&j.chart.result[0].indicators&&j.chart.result[0].indicators.quote&&j.chart.result[0].indicators.quote[0]&&j.chart.result[0].indicators.quote[0].close)||[];
-    return c.filter(function(x){return x!=null});
-  }catch(e){return[]}
+  // Try query1 v8, query2 v8, then v7
+  var urls=[YAHOO_DY.replace('SYM',sym),YAHOO_Q2.replace('SYM',sym)];
+  for(var ui=0;ui<urls.length;ui++){
+    try{
+      var r=await fetchProxy(urls[ui],{signal:AbortSignal.timeout(15000)});
+      var j=await r.json();
+      var c=(j.chart&&j.chart.result&&j.chart.result[0]&&j.chart.result[0].indicators&&j.chart.result[0].indicators.quote&&j.chart.result[0].indicators.quote[0]&&j.chart.result[0].indicators.quote[0].close)||[];
+      var filtered=c.filter(function(x){return x!=null});
+      if(filtered.length>=10)return filtered;
+    }catch(e){}
+  }
+  return[];
 }
 
 async function runScan(){
@@ -240,36 +247,51 @@ async function runScan(){
           priceMap[nrm(nm)]={price:idx.last||0,change:idx.percentChange||idx.pChange||0,name:idx.index||''};
         }
         nseOk=true;
-        $('st').textContent='NSE: '+allIdx.length+' indices live';
-      }
-    }catch(e){}
+    $('st').textContent='[NSE] '+allIdx.length+' indices live';
+    }
+  }catch(e){}
   }
 
   // Yahoo fallback for live prices
   if(!nseOk||Object.keys(priceMap).length===0){
-    addLog('NSE API failed, using Yahoo for live prices...','i');
-    $('st').innerHTML='<span class="spinner"></span> Yahoo live prices...';
+    addLog('[NSE] failed, trying [YAHOO] live prices...','i');
+    var yTotal=Object.keys(YAHOO).length;
+    var yDone=0;
     for(var name in YAHOO){
-      try{
-        var sym=YAHOO[name];
-        var url=YAHOO_DY.replace('SYM',sym);
-        var yr=await fetchProxy(url,{signal:AbortSignal.timeout(10000)});
-        var yj=await yr.json();
-        var meta=yj.chart&&yj.chart.result&&yj.chart.result[0]&&yj.chart.result[0].meta;
-        if(meta&&meta.regularMarketPrice){
-          priceMap[nrm(name)]={price:meta.regularMarketPrice,change:meta.regularMarketChangePercent||0,name:name};
-        }
-      }catch(e){}
+      if(yDone%5===0)$('st').innerHTML='<span class="spinner"></span> [YAHOO Live] '+yDone+'/'+yTotal+'...';
+      var sym=YAHOO[name];
+      // Try v8 chart API (query1, then query2), then v7 quote API
+      var urls=[YAHOO_DY.replace('SYM',sym),YAHOO_Q2.replace('SYM',sym),YAHOO_Q7.replace('SYM',sym)];
+      var got=false;
+      for(var ui=0;ui<urls.length;ui++){
+        try{
+          var yr=await fetchProxy(urls[ui],{signal:AbortSignal.timeout(10000)});
+          var yj=await yr.json();
+          // v8 chart response
+          var meta=yj.chart&&yj.chart.result&&yj.chart.result[0]&&yj.chart.result[0].meta;
+          if(meta&&meta.regularMarketPrice){
+            priceMap[nrm(name)]={price:meta.regularMarketPrice,change:meta.regularMarketChangePercent||0,name:name};
+            got=true;break;
+          }
+          // v7 quote response
+          var q=yj.quoteResponse&&yj.quoteResponse.result&&yj.quoteResponse.result[0];
+          if(q&&q.regularMarketPrice){
+            priceMap[nrm(name)]={price:q.regularMarketPrice,change:q.regularMarketChangePercent||0,name:name};
+            got=true;break;
+          }
+        }catch(e){}
+      }
+      if(got)yDone++;
       await sleep(200);
     }
-    $('st').textContent='Yahoo: '+Object.keys(priceMap).length+' prices';
+    $('st').textContent='[YAHOO] '+yDone+'/'+yTotal+' live prices';
   }
 
   // Step 2: Try NSE CSV first, then Yahoo fallback
   var dailyMap={};
   var csvOk=false;
   var days=genDays(FETCH_DAYS);
-  $('st').innerHTML='<span class="spinner"></span> Trying NSE CSV archives...';
+  $('st').innerHTML='<span class="spinner"></span> [NSE CSV] Fetching 100 days...';
 
   for(var i=0;i<days.length;i+=BATCH){
     var batch=days.slice(i,i+BATCH);
@@ -294,16 +316,17 @@ async function runScan(){
         }).catch(function(){});
     });
     await Promise.all(promises);
-    if(i%20===0)$('st').innerHTML='<span class="spinner"></span> CSV: '+Math.min(i+BATCH,days.length)+'/'+days.length+'...';
+    $('st').innerHTML='<span class="spinner"></span> [NSE CSV] '+Math.min(i+BATCH,days.length)+'/'+days.length+'...';
     await sleep(DELAY);
   }
 
-  // Step 3: Yahoo fallback for indices without CSV data
+  // Step 3: Yahoo fallback for historical data
   if(!csvOk||Object.keys(dailyMap).length===0){
-    addLog('CSV failed, using Yahoo Finance...','i');
+    addLog('[NSE CSV] Failed, switching to [YAHOO] historical...','i');
     var yahooCount=0;
+    var yahooTotal=Object.keys(YAHOO).length;
     for(var name in YAHOO){
-      if(yahooCount%5===0)$('st').innerHTML='<span class="spinner"></span> Yahoo: '+yahooCount+'/'+Object.keys(YAHOO).length+'...';
+      if(yahooCount%5===0)$('st').innerHTML='<span class="spinner"></span> [YAHOO Hist] '+yahooCount+'/'+yahooTotal+'...';
       var sym=YAHOO[name];
       var closes=await fetchYahooCloses(sym);
       if(closes.length>=20){
@@ -312,7 +335,7 @@ async function runScan(){
       }
       await sleep(300);
     }
-    addLog('Yahoo: '+yahooCount+' indices','i');
+    addLog('[YAHOO] Historical: '+yahooCount+' indices','i');
   }
 
   // Step 4: Compute indicators
@@ -341,7 +364,8 @@ async function runScan(){
   scanR.sort(function(a,b){return b.score-a.score});
   render(scanR);
   processScan(scanR);
-  $('st').textContent=count+' indices scanned';
+  var src=nseOk?'[NSE]':'[YAHOO]';
+  $('st').textContent=src+' '+count+' indices scanned';
   $('ts').textContent=new Date().toLocaleString();
   addLog('Done: '+count+' indices','i');
 
