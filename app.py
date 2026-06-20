@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import requests
+import cloudscraper
 import urllib.parse
 
 app = Flask(__name__)
@@ -15,22 +15,22 @@ def fetch_nse():
     if not symbol or not from_date or not to_date:
         return jsonify({"error": "Missing parameters"}), 400
 
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': '*/*',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br'
-    }
-    
-    session = requests.Session()
-    session.headers.update(headers)
+    # cloudscraper bypasses enterprise bot protections by mimicking browser TLS fingerprints
+    scraper = cloudscraper.create_scraper(browser={
+        'browser': 'chrome',
+        'platform': 'windows',
+        'desktop': True
+    })
     
     try:
-        session.get("https://www.nseindia.com", timeout=10)
+        # Step 1: Hit main page to establish valid session cookies
+        scraper.get("https://www.nseindia.com", timeout=15)
+        
+        # Step 2: Fetch the historical API endpoint
         encoded_symbol = urllib.parse.quote(symbol)
         url = f"https://www.nseindia.com/api/historical/indicesHistory?indexType={encoded_symbol}&from={from_date}&to={to_date}"
         
-        response = session.get(url, timeout=10)
+        response = scraper.get(url, timeout=15)
         
         if response.status_code == 200:
             return jsonify(response.json())
